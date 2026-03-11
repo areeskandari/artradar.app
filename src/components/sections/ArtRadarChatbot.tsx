@@ -60,7 +60,7 @@ export function ArtRadarChatbot({ fullPage }: ArtRadarChatbotProps) {
     <div className="bg-white border border-ink-200 rounded-xl p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={18} className="text-gold-600" />
-        <p className="font-semibold text-ink-900">Ask Dubai Art Radar</p>
+        <p className="font-semibold text-ink-900">Ask Art Radar</p>
         <span className="text-[10px] font-medium uppercase tracking-wider text-ink-500 bg-ink-100 px-1.5 py-0.5 rounded">
           beta
         </span>

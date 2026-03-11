@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "Discover artists in Dubai and the UAE — profiles, exhibitions, galleries, and collaborations. Browse the artist directory.",
   keywords: ['artists Dubai', 'UAE artists', 'Dubai art scene', 'artist directory'],
   openGraph: {
-    title: 'Artists | Dubai Art Radar',
+    title: 'Artists | Art Radar',
     description: "Discover artists in Dubai's art scene — profiles, exhibitions, and collaborations.",
     url: '/artists',
   },

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "Your Guide to Dubai's Art Scene",
   description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. This week in Dubai, gallery directory, and art news.",
   openGraph: {
-    title: "Dubai Art Radar — Your Guide to Dubai's Art Scene",
+    title: "Art Radar — Your Guide to Dubai's Art Scene",
     description: "Discover galleries, exhibitions, artists and events in Dubai. Gallery directory, events calendar, artist profiles.",
     url: '/',
   },
@@ -307,7 +307,7 @@ export default async function HomePage({
           <SubscribeForm
             sourceType="newsletter"
             title="Your Art World, Delivered"
-            description="Join the Dubai Art Radar newsletter for weekly highlights, opening nights, and exclusive access."
+            description="Join the Art Radar newsletter for weekly highlights, opening nights, and exclusive access."
             variant="light"
           />
         </div>

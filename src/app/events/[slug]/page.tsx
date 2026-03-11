@@ -21,13 +21,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createPublicDataClient()
   const { data: event } = await supabase.from('events').select('title, description, image_url').eq('slug', slug).single()
   if (!event) return {}
-  const description = stripHtml(event.description)?.slice(0, 160) || `Event: ${event.title} — Dubai Art Radar`
+  const description = stripHtml(event.description)?.slice(0, 160) || `Event: ${event.title} — Art Radar`
   const imageUrl = event.image_url || getPlaceholderImage('event', slug)
   return {
     title: event.title,
     description,
     openGraph: {
-      title: `${event.title} | Dubai Art Radar`,
+      title: `${event.title} | Art Radar`,
       description,
       url: `/events/${slug}`,
       type: 'website',

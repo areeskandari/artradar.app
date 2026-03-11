@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Admin',
-  description: 'Dubai Art Radar admin',
+  description: 'Art Radar admin',
   robots: { index: false, follow: false, noarchive: true },
 }
 

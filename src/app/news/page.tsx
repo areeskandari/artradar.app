@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "The latest news from Dubai's art world — gallery openings, artist announcements, exhibitions, and cultural events.",
   keywords: ['Dubai art news', 'art world UAE', 'gallery openings Dubai', 'art announcements'],
   openGraph: {
-    title: 'News & Updates | Dubai Art Radar',
+    title: 'News & Updates | Art Radar',
     description: "The latest news from Dubai's art world — gallery openings, artist announcements, and cultural events.",
     url: '/news',
   },

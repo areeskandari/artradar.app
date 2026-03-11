@@ -43,7 +43,7 @@ export function AdminLoginForm() {
             <Logo variant="mark" />
           </div>
           <h1 className="font-serif text-3xl text-ink-900">Admin Login</h1>
-          <p className="text-ink-500 text-sm mt-1">Dubai Art Radar</p>
+          <p className="text-ink-500 text-sm mt-1">Art Radar</p>
         </div>
 
         <div className="bg-white border border-ink-200 rounded-lg p-6">

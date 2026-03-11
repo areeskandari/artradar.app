@@ -14,23 +14,23 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dubaiartradar.com'
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Dubai Art Radar — Your Guide to Dubai's Art Scene",
-    template: '%s | Dubai Art Radar',
+    default: "Art Radar — Your Guide to Dubai's Art Scene",
+    template: '%s | Art Radar',
   },
   description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. Your cultural compass for the UAE art world.",
   keywords: ['Dubai art', 'galleries Dubai', 'art exhibitions Dubai', 'artists UAE', 'DIFC galleries', 'Alserkal Avenue', 'UAE art', 'Dubai galleries', 'art events Dubai'],
   openGraph: {
     type: 'website',
     locale: 'en_AE',
-    siteName: 'Dubai Art Radar',
-    title: "Dubai Art Radar — Your Guide to Dubai's Art Scene",
+    siteName: 'Art Radar',
+    title: "Art Radar — Your Guide to Dubai's Art Scene",
     description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. Your cultural compass for the UAE art world.",
     url: '/',
-    images: [{ url: '/icon.svg', width: 512, height: 512, alt: 'Dubai Art Radar' }],
+    images: [{ url: '/icon.svg', width: 512, height: 512, alt: 'Art Radar' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Dubai Art Radar — Your Guide to Dubai's Art Scene",
+    title: "Art Radar — Your Guide to Dubai's Art Scene",
     description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene.",
   },
   alternates: { canonical: '/' },
@@ -81,14 +81,14 @@ export default function RootLayout({
               '@graph': [
                 {
                   '@type': 'Organization',
-                  name: 'Dubai Art Radar',
+                  name: 'Art Radar',
                   url: siteUrl,
                   description: "Your guide to Dubai's art scene — galleries, exhibitions, artists and events.",
                   sameAs: [],
                 },
                 {
                   '@type': 'WebSite',
-                  name: 'Dubai Art Radar',
+                  name: 'Art Radar',
                   url: siteUrl,
                   description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene.",
                   potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', url: `${siteUrl}/ask` }, 'query-input': 'required name=query' },

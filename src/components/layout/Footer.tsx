@@ -72,7 +72,7 @@ export function Footer() {
         <div className="gold-divider mb-6" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink-500">
-          <p>© {new Date().getFullYear()} Dubai Art Radar. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Art Radar. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-gold-400 transition-colors">
               <Instagram size={16} />

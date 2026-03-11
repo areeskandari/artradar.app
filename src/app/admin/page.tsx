@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/Button'
-import { Building2, User, Shield } from 'lucide-react'
+import { Building2, User, Shield, Mail } from 'lucide-react'
+import { SUPPORT_CONTACT } from '@/lib/constants'
 
 async function getAdminProfile(userId: string) {
   const supabase = await createClient()
@@ -23,13 +24,35 @@ export default async function AdminDashboard() {
   const profile = await getAdminProfile(user.id)
 
   if (!profile) {
+    const waUrl = `https://wa.me/${SUPPORT_CONTACT.whatsAppNumber.replace(/\D/g, '')}?text=${encodeURIComponent(SUPPORT_CONTACT.whatsAppMessage)}`
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
         <div className="w-16 h-16 bg-ink-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Shield size={28} className="text-ink-400" />
         </div>
         <h1 className="font-serif text-3xl text-ink-900 mb-2">Access Pending</h1>
-        <p className="text-ink-500 mb-6">Your account is awaiting admin role assignment. Contact a super admin.</p>
+        <p className="text-ink-500 mb-6">
+          Your account is awaiting admin role assignment. Contact a super admin to get access.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+          <a
+            href={`mailto:${SUPPORT_CONTACT.email}?subject=Art Radar admin access request`}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-ink-300 text-ink-700 hover:bg-ink-50 transition-colors"
+          >
+            <Mail size={18} /> Email us
+          </a>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#25D366] text-white hover:opacity-90 transition-opacity"
+          >
+            Message on WhatsApp
+          </a>
+        </div>
+        <p className="text-sm text-ink-400 mb-6">
+          Include your sign-in email if it’s different from your main contact.
+        </p>
         <form action="/api/auth/signout" method="post">
           <Button type="submit" variant="outline">Sign Out</Button>
         </form>

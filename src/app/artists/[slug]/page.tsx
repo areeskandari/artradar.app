@@ -18,13 +18,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createPublicDataClient()
   const { data: artist } = await supabase.from('artists').select('name, bio, profile_image_url').eq('slug', slug).single()
   if (!artist) return {}
-  const description = stripHtml(artist.bio)?.slice(0, 160) || `Artist profile: ${artist.name} — Dubai Art Radar`
+  const description = stripHtml(artist.bio)?.slice(0, 160) || `Artist profile: ${artist.name} — Art Radar`
   const imageUrl = artist.profile_image_url || getPlaceholderImage('artist', slug)
   return {
     title: artist.name,
     description,
     openGraph: {
-      title: `${artist.name} | Dubai Art Radar`,
+      title: `${artist.name} | Art Radar`,
       description,
       url: `/artists/${slug}`,
       type: 'profile',

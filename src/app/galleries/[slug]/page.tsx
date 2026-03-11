@@ -21,14 +21,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!gallery) return {}
 
-  const description = stripHtml(gallery.description)?.slice(0, 160) || `${gallery.name} — Dubai Art Radar`
+  const description = stripHtml(gallery.description)?.slice(0, 160) || `${gallery.name} — Art Radar`
   const imageUrl = gallery.cover_image_url || getPlaceholderImage('gallery', slug)
 
   return {
     title: gallery.name,
     description,
     openGraph: {
-      title: `${gallery.name} | Dubai Art Radar`,
+      title: `${gallery.name} | Art Radar`,
       description,
       url: `/galleries/${slug}`,
       type: 'website',

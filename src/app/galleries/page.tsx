@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Explore Dubai's finest art galleries, museums, and libraries — DIFC, Alserkal Avenue, Downtown, Abu Dhabi. Filter by area and type.",
   keywords: ['galleries Dubai', 'DIFC galleries', 'Alserkal Avenue', 'art galleries UAE', 'Dubai museums'],
   openGraph: {
-    title: 'Gallery Directory | Dubai Art Radar',
+    title: 'Gallery Directory | Art Radar',
     description: "Explore Dubai's finest art galleries, museums, and libraries — from DIFC to Alserkal Avenue.",
     url: '/galleries',
   },

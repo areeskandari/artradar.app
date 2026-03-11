@@ -30,7 +30,7 @@ export function Navbar() {
             <Logo variant="mark" />
             <div className="hidden sm:block">
               <span className="font-semibold text-lg text-ink-900 group-hover:text-gold-600 transition-colors">
-                Dubai Art Radar
+                Art Radar
               </span>
             </div>
           </Link>

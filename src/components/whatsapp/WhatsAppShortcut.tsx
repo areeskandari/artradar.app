@@ -26,7 +26,7 @@ export function WhatsAppShortcut() {
   }, [open])
 
   function goToWhatsApp() {
-    const text = message.trim() || 'Hi! I have a question about Dubai Art Radar.'
+    const text = message.trim() || 'Hi! I have a question about Art Radar.'
     const url = `https://wa.me/${waMe}?text=${encodeURIComponent(text)}`
     window.location.href = url
   }

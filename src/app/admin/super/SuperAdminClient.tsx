@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus } from 'lucide-react'
+import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea, Label, Select } from '@/components/ui/Input'
@@ -12,7 +12,7 @@ import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES } from '@/lib/utils'
 import type { Gallery, Artist, Event, NewsPost, Subscriber } from '@/types'
 
-type Tab = 'overview' | 'galleries' | 'artists' | 'events' | 'news' | 'subscribers'
+type Tab = 'overview' | 'pending' | 'galleries' | 'artists' | 'events' | 'news' | 'subscribers'
 
 interface Props {
   galleries: Gallery[]
@@ -54,6 +54,11 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [editNewsForm, setEditNewsForm] = useState({
     title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '',
   })
+
+  // Pending users (awaiting admin role)
+  const [pendingUsers, setPendingUsers] = useState<{ id: string; email?: string; created_at: string }[]>([])
+  const [pendingLoading, setPendingLoading] = useState(false)
+  const [assigningId, setAssigningId] = useState<string | null>(null)
 
   // News form
   const [showNewsForm, setShowNewsForm] = useState(false)
@@ -377,8 +382,47 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     router.refresh()
   }
 
+  async function loadPendingUsers() {
+    setPendingLoading(true)
+    try {
+      const res = await fetch('/api/admin/pending-users')
+      const data = await res.json()
+      if (res.ok) setPendingUsers(data.pending || [])
+      else setMessage(data.error || 'Failed to load pending users')
+    } finally {
+      setPendingLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (tab === 'pending') loadPendingUsers()
+  }, [tab])
+
+  async function assignRole(userId: string, role: 'super_admin' | 'gallery_admin' | 'artist', galleryId?: string, artistId?: string) {
+    setAssigningId(userId)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/assign-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, role, galleryId: galleryId || undefined, artistId: artistId || undefined }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMessage('Role assigned. User can refresh their dashboard.')
+        setPendingUsers((prev) => prev.filter((u) => u.id !== userId))
+        router.refresh()
+      } else {
+        setMessage(data.error || 'Failed to assign role')
+      }
+    } finally {
+      setAssigningId(null)
+    }
+  }
+
   const tabs: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'overview', label: 'Overview', icon: <Shield size={14} /> },
+    { id: 'pending', label: 'Pending access', icon: <UserPlus size={14} />, count: pendingUsers.length },
     { id: 'galleries', label: 'Galleries', icon: <Building2 size={14} />, count: galleries.length },
     { id: 'artists', label: 'Artists', icon: <User size={14} />, count: artists.length },
     { id: 'events', label: 'Events', icon: <Calendar size={14} />, count: events.length },
@@ -393,7 +437,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
           <Shield size={20} className="text-gold-500" />
           <h1 className="font-serif text-3xl text-ink-900">Super Admin</h1>
         </div>
-        <p className="text-ink-500 text-sm">Full control over all Dubai Art Radar content</p>
+        <p className="text-ink-500 text-sm">Full control over all Art Radar content</p>
       </div>
 
       {/* Tabs */}
@@ -440,6 +484,54 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
               <p className="text-xs text-ink-500 mt-0.5">{sub}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* PENDING ACCESS */}
+      {tab === 'pending' && (
+        <div>
+          <h2 className="font-serif text-xl text-ink-900 mb-2">Users awaiting admin access</h2>
+          <p className="text-sm text-ink-500 mb-4">
+            These users have signed in but don’t have an admin role yet. Assign a role to grant access.
+          </p>
+          {pendingLoading ? (
+            <p className="text-ink-500">Loading…</p>
+          ) : pendingUsers.length === 0 ? (
+            <p className="text-ink-500">No pending users.</p>
+          ) : (
+            <div className="bg-white border border-ink-200 rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ink-200 bg-ink-50">
+                    <th className="text-left py-3 px-4 font-medium text-ink-700">Email</th>
+                    <th className="text-left py-3 px-4 font-medium text-ink-700">Signed up</th>
+                    <th className="text-right py-3 px-4 font-medium text-ink-700">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingUsers.map((u) => (
+                    <tr key={u.id} className="border-b border-ink-100 hover:bg-ink-50/50">
+                      <td className="py-3 px-4 text-ink-900">{u.email || u.id}</td>
+                      <td className="py-3 px-4 text-ink-500">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                      <td className="py-3 px-4 text-right">
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          disabled={assigningId === u.id}
+                          onClick={() => assignRole(u.id, 'super_admin')}
+                        >
+                          {assigningId === u.id ? 'Assigning…' : 'Grant super admin'}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="text-xs text-ink-400 mt-4">
+            For artist or gallery admin roles, add the profile in Supabase (admin_profiles) and link gallery_id or artist_id.
+          </p>
         </div>
       )}
 

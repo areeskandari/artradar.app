@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Find exhibitions, talks, art fairs, workshops, and performances happening in Dubai. Upcoming and past events calendar.',
   keywords: ['art events Dubai', 'exhibitions Dubai', 'art exhibitions', 'Dubai events', 'DIFC exhibitions'],
   openGraph: {
-    title: 'Events | Dubai Art Radar',
+    title: 'Events | Art Radar',
     description: 'Find exhibitions, talks, art fairs, workshops, and performances happening in Dubai.',
     url: '/events',
   },

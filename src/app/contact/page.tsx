@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Contact Dubai Art Radar for listings, partnerships, and corrections. WhatsApp and email.',
+  description: 'Contact Art Radar for listings, partnerships, and corrections. WhatsApp and email.',
   openGraph: {
-    title: 'Contact | Dubai Art Radar',
-    description: 'Contact Dubai Art Radar for listings, partnerships, and corrections.',
+    title: 'Contact | Art Radar',
+    description: 'Contact Art Radar for listings, partnerships, and corrections.',
     url: '/contact',
   },
   alternates: { canonical: '/contact' },

@@ -36,7 +36,7 @@ export function Logo({
 
       {variant === 'lockup' && (
         <span className="leading-none">
-          <span className="block text-sm font-semibold text-ink-900">Dubai Art Radar</span>
+          <span className="block text-sm font-semibold text-ink-900">Art Radar</span>
           <span className="block text-[11px] text-ink-500">Galleries • Events • Artists</span>
         </span>
       )}
