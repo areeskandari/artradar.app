@@ -9,6 +9,7 @@ import { Input, Textarea, Label, Select } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { EventTypeBadge } from '@/components/ui/EventTypeBadge'
 import { formatDate, slugify, EVENT_TYPES, GALLERY_AREAS, GALLERY_TYPES } from '@/lib/utils'
+import { PAYMENTS_DISABLED } from '@/lib/constants'
 import type { Gallery, Event, Subscriber, Artist } from '@/types'
 
 type Tab = 'profile' | 'events' | 'artists' | 'subscribers' | 'billing'
@@ -338,9 +339,13 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {!event.is_featured && (
-                    <Button onClick={() => featureEvent(event.id)} variant="outline" size="sm">
-                      <Star size={12} /> Feature ($200)
-                    </Button>
+                    PAYMENTS_DISABLED ? (
+                      <span className="text-xs text-ink-400">Feature ($200) — coming soon</span>
+                    ) : (
+                      <Button onClick={() => featureEvent(event.id)} variant="outline" size="sm">
+                        <Star size={12} /> Feature ($200)
+                      </Button>
+                    )
                   )}
                   {event.is_featured && <Badge variant="gold">Featured</Badge>}
                   <button onClick={() => startEditEvent(event)} className="p-1.5 text-ink-400 hover:text-ink-900 transition-colors">
@@ -424,9 +429,13 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
                 <p className="text-xs text-ink-500">Renews: {formatDate(gallery.subscription_ends_at)}</p>
               </div>
             ) : (
-              <Button onClick={subscribeGallery} variant="gold">
-                <CreditCard size={15} /> Subscribe — $50/month
-              </Button>
+              PAYMENTS_DISABLED ? (
+                <p className="text-sm text-ink-500">Payments coming soon.</p>
+              ) : (
+                <Button onClick={subscribeGallery} variant="gold">
+                  <CreditCard size={15} /> Subscribe — $50/month
+                </Button>
+              )
             )}
           </div>
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input, Textarea, Label } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { formatDate } from '@/lib/utils'
+import { PAYMENTS_DISABLED } from '@/lib/constants'
 import type { Artist } from '@/types'
 
 interface Props {
@@ -134,9 +135,13 @@ export function ArtistAdminClient({ artist }: Props) {
             )}
           </div>
         ) : (
-          <Button onClick={subscribePro} variant="dark">
-            <CreditCard size={15} /> Subscribe — $5/month
-          </Button>
+          PAYMENTS_DISABLED ? (
+            <p className="text-sm text-ink-500">Payments coming soon.</p>
+          ) : (
+            <Button onClick={subscribePro} variant="dark">
+              <CreditCard size={15} /> Subscribe — $5/month
+            </Button>
+          )
         )}
       </div>
     </div>

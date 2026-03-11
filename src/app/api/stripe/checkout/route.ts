@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, STRIPE_PRICES } from '@/lib/stripe'
+import { getStripe, getStripePrices } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+import { PAYMENTS_DISABLED } from '@/lib/constants'
 
 export async function POST(req: NextRequest) {
   try {
+    if (PAYMENTS_DISABLED) {
+      return NextResponse.json({ error: 'Payments are temporarily disabled' }, { status: 503 })
+    }
+
     const { product_type, entity_id } = await req.json()
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -13,6 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const STRIPE_PRICES = getStripePrices()
 
     const priceMap: Record<string, string> = {
       gallery_subscription: STRIPE_PRICES.GALLERY_MONTHLY,
@@ -31,7 +37,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid product type' }, { status: 400 })
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: modeMap[product_type],
       payment_method_types: ['card'],
       line_items: [{ price, quantity: 1 }],
