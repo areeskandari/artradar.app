@@ -21,7 +21,7 @@ export async function GET() {
     }
 
     const admin = await createAdminClient()
-    const { data: { users }, error: listError } = await admin.auth.admin.listUsers({ per_page: 1000 })
+    const { data: { users }, error: listError } = await admin.auth.admin.listUsers({ perPage: 1000 })
     if (listError) {
       console.error('listUsers error:', listError)
       return NextResponse.json({ error: 'Failed to list users' }, { status: 500 })
