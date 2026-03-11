@@ -3,10 +3,8 @@ import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { WhatsAppShortcut } from '@/components/whatsapp/WhatsAppShortcut'
-import { Ubuntu, Geist } from 'next/font/google'
+import { Ubuntu } from 'next/font/google'
 import { cn } from '@/lib/utils'
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const ubuntu = Ubuntu({ weight: ['300', '400', '500', '700'], subsets: ['latin'], variable: '--font-ubuntu' })
 
@@ -49,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={cn('light font-sans', ubuntu.variable, "font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn('light font-sans', ubuntu.variable)} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
