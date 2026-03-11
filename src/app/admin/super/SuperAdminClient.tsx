@@ -477,13 +477,13 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                   <Label>Area</Label>
                   <Select value={galleryForm.area} onChange={(e) => setGalleryForm({ ...galleryForm, area: e.target.value })}>
                     <option value="">—</option>
-                    {GALLERY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                    {GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                   </Select>
                 </div>
                 <div>
                   <Label>Type</Label>
                   <Select value={galleryForm.type} onChange={(e) => setGalleryForm({ ...galleryForm, type: e.target.value })}>
-                    {GALLERY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                    {GALLERY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </Select>
                 </div>
                 <div>
@@ -624,13 +624,13 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <Label>Area</Label>
                         <Select value={editGalleryForm.area} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, area: e.target.value })}>
                           <option value="">—</option>
-                          {GALLERY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                          {GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </Select>
                       </div>
                       <div>
                         <Label>Type</Label>
                         <Select value={editGalleryForm.type} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, type: e.target.value })}>
-                          {GALLERY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                          {GALLERY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </Select>
                       </div>
                       <div>
@@ -916,7 +916,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                 <div>
                   <Label>Event type</Label>
                   <Select value={eventForm.event_type} onChange={(e) => setEventForm({ ...eventForm, event_type: e.target.value })}>
-                    {EVENT_TYPES.map((t) => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
+                    {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </Select>
                 </div>
                 <div className="sm:col-span-2">
@@ -1052,7 +1052,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                       <div>
                         <Label>Event type</Label>
                         <Select value={editEventForm.event_type} onChange={(e) => setEditEventForm({ ...editEventForm, event_type: e.target.value })}>
-                          {EVENT_TYPES.map((t) => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
+                          {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </Select>
                       </div>
                       <div className="sm:col-span-2">

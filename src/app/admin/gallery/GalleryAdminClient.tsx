@@ -215,14 +215,14 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
               <Label>Area</Label>
               <Select value={profileForm.area} onChange={(e) => setProfileForm({ ...profileForm, area: e.target.value })}>
                 <option value="">Select area</option>
-                {GALLERY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                {GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
               </Select>
             </div>
             <div>
               <Label>Type</Label>
               <Select value={profileForm.type} onChange={(e) => setProfileForm({ ...profileForm, type: e.target.value })}>
                 <option value="">Select type</option>
-                {GALLERY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                {GALLERY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </Select>
             </div>
             <div>
@@ -271,7 +271,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
                 <div>
                   <Label>Type</Label>
                   <Select value={eventForm.event_type} onChange={(e) => setEventForm({ ...eventForm, event_type: e.target.value })}>
-                    {EVENT_TYPES.map((t) => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
+                    {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </Select>
                 </div>
                 <div>

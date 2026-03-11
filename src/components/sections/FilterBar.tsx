@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import { X } from 'lucide-react'
-import { cn, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, EVENT_TYPE_CONFIG } from '@/lib/utils'
+import { cn, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES } from '@/lib/utils'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Input'
 
@@ -88,7 +88,7 @@ export function FilterBar({ mode, paramPrefix = '', basePath }: FilterBarProps) 
           >
             <option value="">All Areas</option>
             {GALLERY_AREAS.map((area) => (
-              <option key={area} value={area}>{area}</option>
+              <option key={area.value} value={area.value}>{area.label}</option>
             ))}
           </Select>
         </div>
@@ -102,9 +102,7 @@ export function FilterBar({ mode, paramPrefix = '', basePath }: FilterBarProps) 
             >
               <option value="">All Types</option>
               {GALLERY_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type === 'gallery' ? 'Art Gallery' : type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
+                <option key={type.value} value={type.value}>{type.label}</option>
               ))}
             </Select>
           </div>
@@ -119,7 +117,7 @@ export function FilterBar({ mode, paramPrefix = '', basePath }: FilterBarProps) 
               >
                 <option value="">All Event Types</option>
                 {EVENT_TYPES.map((type) => (
-                  <option key={type} value={type}>{EVENT_TYPE_CONFIG[type].label}</option>
+                  <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
               </Select>
             </div>

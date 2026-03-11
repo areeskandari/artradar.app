@@ -3,6 +3,8 @@ import { createPublicDataClient } from '@/lib/supabase/server'
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dubaiartradar.com'
 
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },

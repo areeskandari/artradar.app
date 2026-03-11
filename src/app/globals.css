@@ -184,7 +184,7 @@
 }
 
 .ProseMirror a {
-  color: var(--accent);
+  color: oklch(0.488 0.243 264.376);
   text-decoration: underline;
 }
 
@@ -195,9 +195,9 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid var(--border-default);
+  border-left: 3px solid var(--border);
   padding-left: 0.75rem;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   margin: 0.75rem 0;
 }
 

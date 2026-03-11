@@ -32,7 +32,7 @@ export function ArtRadarChatbot({ fullPage }: ArtRadarChatbotProps) {
     const content = text.trim()
     if (!content) return
     setInput('')
-    const next = [...messages, { role: 'user', content }]
+    const next: Msg[] = [...messages, { role: 'user', content }]
     setMessages(next)
     setLoading(true)
 
