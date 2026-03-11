@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dar_grad" x1="90" y1="50" x2="430" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect x="40" y="40" width="432" height="432" rx="140" fill="url(#dar_grad)"/>
+  <path d="M183 166h121c52 0 88 36 88 90s-36 90-88 90H183V166Zm48 42v138h66c27 0 47-24 47-69s-20-69-47-69h-66Z" fill="#0A0A0B" fill-opacity="0.92"/>
+  <circle cx="398" cy="152" r="34" fill="#0A0A0B" fill-opacity="0.92"/>
+</svg>
+
