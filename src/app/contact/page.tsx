@@ -3,12 +3,14 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Contact',
   description: 'Contact Art Radar for listings, partnerships, and corrections. WhatsApp and email.',
+  keywords: ['contact Art Radar', 'Dubai art contact', 'list your gallery', 'art event submission'],
   openGraph: {
     title: 'Contact | Art Radar',
     description: 'Contact Art Radar for listings, partnerships, and corrections.',
     url: '/contact',
   },
   alternates: { canonical: '/contact' },
+  robots: { index: true, follow: true },
 }
 
 export default function ContactPage() {

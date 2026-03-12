@@ -35,6 +35,7 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
+  icons: { icon: '/icon.svg', type: 'image/svg+xml' },
   verification: {
     // Optional: add when you have them
     // google: 'google-site-verification-code',
@@ -50,10 +51,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn('light font-sans', ubuntu.variable)} suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-screen flex flex-col bg-background text-foreground">
+      <body className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden">
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
             <Script
@@ -98,7 +100,7 @@ export default function RootLayout({
           }}
         />
         <Navbar />
-        <main className="flex-1">
+        <main className="flex-1 w-full min-w-0">
           {children}
         </main>
         <Footer />

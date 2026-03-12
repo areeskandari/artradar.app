@@ -4,12 +4,14 @@ import { ArtRadarChatbot } from '@/components/sections/ArtRadarChatbot'
 export const metadata: Metadata = {
   title: 'Ask Art Radar',
   description: 'Ask questions about galleries, events, artists, and news in Dubai. Get answers powered by our art scene database.',
+  keywords: ['ask Art Radar', 'Dubai art Q&A', 'art scene chatbot', 'galleries events Dubai'],
   openGraph: {
     title: 'Ask Art Radar | Art Radar',
     description: 'Ask questions about galleries, events, artists, and news in Dubai.',
     url: '/ask',
   },
   alternates: { canonical: '/ask' },
+  robots: { index: true, follow: true },
 }
 
 export default function AskPage() {

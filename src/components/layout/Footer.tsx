@@ -4,14 +4,14 @@ import { Logo } from '@/components/brand/Logo'
 
 export function Footer() {
   return (
-    <footer className="bg-ink-950 text-ink-300 geometric-bg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <footer className="bg-ink-950 text-ink-300 geometric-bg w-full min-w-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 w-full min-w-0">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div className="md:col-span-1">
-            <div className="mb-3">
-              <Logo variant="lockup" />
-            </div>
+            <Link href="/" className="inline-flex items-center gap-2 mb-3">
+              <Logo variant="lockup" theme="dark" />
+            </Link>
             <p className="text-sm text-ink-400 leading-relaxed">
               Your cultural compass for Dubai&rsquo;s art scene. Galleries, exhibitions, artists, and events — all in one place.
             </p>
@@ -26,12 +26,17 @@ export function Footer() {
                 { href: '/events', label: 'Events' },
                 { href: '/artists', label: 'Artists' },
                 { href: '/news', label: 'News' },
+                { href: '/ask', label: 'Ask', beta: true },
+                { href: '/map', label: 'Map' },
+                { href: '/timeline', label: 'Timeline' },
                 { href: '/about', label: 'About' },
                 { href: '/contact', label: 'Contact' },
+                { href: '/donate', label: 'Donate' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-ink-400 hover:text-gold-400 transition-colors">
                     {link.label}
+                    {'beta' in link && link.beta && <span className="ml-1 text-[9px] uppercase text-ink-500">beta</span>}
                   </Link>
                 </li>
               ))}

@@ -91,10 +91,10 @@ export default async function GalleryProfilePage({ params }: Props) {
         )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 min-w-0">
           {/* Main */}
-          <div className="lg:col-span-2 space-y-10">
+          <div className="lg:col-span-2 space-y-10 min-w-0">
             {/* Header */}
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -173,7 +173,7 @@ export default async function GalleryProfilePage({ params }: Props) {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
             {/* Contact */}
             <div className="bg-white border border-ink-200 rounded-lg p-5">
               <h3 className="font-medium text-ink-900 mb-4">Contact & Links</h3>
@@ -183,6 +183,18 @@ export default async function GalleryProfilePage({ params }: Props) {
                     <MapPin size={15} className="shrink-0 mt-0.5 text-gold-500" />
                     <span>{gallery.address}</span>
                   </div>
+                )}
+                {gallery.lat != null && gallery.lng != null && (
+                  <a
+                    href={`https://www.google.com/maps?q=${gallery.lat},${gallery.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 text-ink-600 hover:text-gold-600 transition-colors"
+                  >
+                    <MapPin size={15} className="text-gold-500" />
+                    <span>View on map</span>
+                    <ExternalLink size={11} />
+                  </a>
                 )}
                 {gallery.phone && (
                   <a href={`tel:${gallery.phone}`} className="flex items-center gap-2.5 text-ink-600 hover:text-gold-600 transition-colors">

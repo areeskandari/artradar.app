@@ -4,12 +4,14 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'About',
   description: 'Art Radar is a curated guide to Dubai’s galleries, artists, exhibitions, and cultural events. Our mission and what you’ll find.',
+  keywords: ['Art Radar', 'Dubai art guide', 'about Art Radar', 'UAE art scene'],
   openGraph: {
     title: 'About | Art Radar',
     description: 'Art Radar is a curated guide to Dubai’s galleries, artists, exhibitions, and cultural events.',
     url: '/about',
   },
   alternates: { canonical: '/about' },
+  robots: { index: true, follow: true },
 }
 
 export default function AboutPage() {

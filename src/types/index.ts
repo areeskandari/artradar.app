@@ -26,6 +26,8 @@ export interface Gallery {
   subscription_ends_at: string | null
   stripe_customer_id: string | null
   created_at: string
+  lat: number | null
+  lng: number | null
   // Computed/joined fields
   upcoming_events_count?: number
   events?: Event[]
@@ -71,6 +73,8 @@ export interface Event {
   created_by: string | null
   is_featured: boolean
   created_at: string
+  lat: number | null
+  lng: number | null
   // Joined fields
   gallery?: Gallery
   artists?: Artist[]

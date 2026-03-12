@@ -76,10 +76,10 @@ export default async function EventPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 min-w-0">
           {/* Main */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-8 min-w-0">
             <div>
               <h1 className="font-serif text-4xl sm:text-5xl text-ink-900 leading-tight mb-3">
                 {event.title}
@@ -135,7 +135,7 @@ export default async function EventPage({ params }: Props) {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             {/* Ticket info */}
             <div className="bg-white border border-ink-200 rounded-lg p-5">
               <h3 className="font-medium text-ink-900 mb-3 flex items-center gap-2">
@@ -171,6 +171,19 @@ export default async function EventPage({ params }: Props) {
                 <div>
                   <p className="text-xs text-ink-500 uppercase tracking-wider font-medium mb-0.5">Location</p>
                   <p className="text-ink-800">{event.location}</p>
+                </div>
+              )}
+              {event.lat != null && event.lng != null && (
+                <div>
+                  <p className="text-xs text-ink-500 uppercase tracking-wider font-medium mb-0.5">Map</p>
+                  <a
+                    href={`https://www.google.com/maps?q=${event.lat},${event.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gold-600 hover:underline inline-flex items-center gap-1"
+                  >
+                    View exact location on map <ExternalLink size={12} />
+                  </a>
                 </div>
               )}
             </div>

@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     url: '/galleries',
   },
   alternates: { canonical: '/galleries' },
+  robots: { index: true, follow: true },
 }
 
 interface Props {
@@ -97,7 +98,7 @@ async function GalleriesGrid({ searchParams }: Props) {
 
 export default async function GalleriesPage({ searchParams }: Props) {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
       <div className="mb-8">
         <h1 className="font-serif text-4xl text-ink-900 mb-2">Gallery Directory</h1>
         <p className="text-ink-500">Discover galleries, museums, and libraries across Dubai and Abu Dhabi.</p>

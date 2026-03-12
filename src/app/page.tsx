@@ -9,17 +9,21 @@ import { ArtistCard } from '@/components/cards/ArtistCard'
 import { NewsCard } from '@/components/cards/NewsCard'
 import { FilterBar } from '@/components/sections/FilterBar'
 import { SubscribeForm } from '@/components/sections/SubscribeForm'
+import { HomeMapSection } from '@/components/sections/HomeMapSection'
+import type { MapGallery, MapEvent } from '@/components/map/MapView'
 import type { Event, Gallery, NewsPost, Artist, EventType } from '@/types'
 
 export const metadata: Metadata = {
   title: "Your Guide to Dubai's Art Scene",
   description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. This week in Dubai, gallery directory, and art news.",
+  keywords: ['Dubai art', 'galleries Dubai', 'art exhibitions Dubai', 'artists UAE', 'DIFC', 'Alserkal Avenue', 'UAE art', 'art events Dubai'],
   openGraph: {
     title: "Art Radar — Your Guide to Dubai's Art Scene",
     description: "Discover galleries, exhibitions, artists and events in Dubai. Gallery directory, events calendar, artist profiles.",
     url: '/',
   },
   alternates: { canonical: '/' },
+  robots: { index: true, follow: true },
 }
 
 interface HomeSearchParams {
@@ -124,12 +128,22 @@ async function getHomeData(params: HomeSearchParams) {
     .limit(6)
   const news = (newsData || []) as NewsPost[]
 
+  // Map data: galleries and non-expired events with lat/lng
+  const [mapGalleriesRes, mapEventsRes] = await Promise.all([
+    supabase.from('galleries').select('id, name, slug, lat, lng, area').not('lat', 'is', null).not('lng', 'is', null),
+    supabase.from('events').select('id, title, slug, lat, lng, start_date, end_date, event_type').gte('end_date', now).not('lat', 'is', null).not('lng', 'is', null),
+  ])
+  const mapGalleries = (mapGalleriesRes.data || []) as MapGallery[]
+  const mapEvents = (mapEventsRes.data || []) as MapEvent[]
+
   return {
     thisWeekInDubai,
     galleries,
     events,
     artists,
     news,
+    mapGalleries,
+    mapEvents,
   }
 }
 
@@ -153,8 +167,8 @@ function Section({
   dark?: boolean
 }) {
   return (
-    <section id={id} className={`py-12 sm:py-16 px-4 sm:px-6 ${className}`}>
-      <div className="max-w-7xl mx-auto">
+    <section id={id} className={`py-12 sm:py-16 px-4 sm:px-6 w-full min-w-0 ${className}`}>
+      <div className="max-w-7xl mx-auto w-full min-w-0">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <h2 className={`font-serif text-3xl ${dark ? 'text-white' : 'text-ink-900'}`}>{title}</h2>
@@ -184,10 +198,10 @@ export default async function HomePage({
   searchParams: Promise<HomeSearchParams>
 }) {
   const params = await searchParams
-  const { thisWeekInDubai, galleries, events, artists, news } = await getHomeData(params)
+  const { thisWeekInDubai, galleries, events, artists, news, mapGalleries, mapEvents } = await getHomeData(params)
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in w-full min-w-0">
       {/* 1. This week in Dubai */}
       <Section
         id="this-week"
@@ -299,6 +313,18 @@ export default async function HomePage({
         ) : (
           <p className="text-ink-400 text-center py-10">No news yet.</p>
         )}
+      </Section>
+
+      {/* Map */}
+      <Section
+        id="map"
+        title="Explore on map"
+        subtitle="Galleries and events across Dubai"
+        linkHref="/map"
+        linkLabel="Full map"
+        className="bg-ink-50"
+      >
+        <HomeMapSection galleries={mapGalleries} events={mapEvents} />
       </Section>
 
       {/* Newsletter */}

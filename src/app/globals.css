@@ -20,6 +20,7 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
     @apply font-sans;
   }
 
@@ -142,6 +143,8 @@
     font-family: var(--font-ubuntu);
     line-height: 1.8;
     color: #3d3a36;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 
   .prose-art h2 {
@@ -218,3 +221,36 @@
   pointer-events: none;
   height: 0;
 }
+
+/* Leaflet map: pin markers with icons */
+.leaflet-div-icon.custom-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.marker-pin {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-pin .marker-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+.marker-pin .marker-icon svg {
+  flex-shrink: 0;
+}
+
+.marker-gallery .marker-icon { background: #2563eb; }
+.marker-event .marker-icon { background: #c8891a; }

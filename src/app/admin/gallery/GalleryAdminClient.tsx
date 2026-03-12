@@ -39,6 +39,8 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
     phone: gallery.phone || '',
     submission_policy: gallery.submission_policy || '',
     founded_year: String(gallery.founded_year || ''),
+    lat: gallery.lat != null ? String(gallery.lat) : '',
+    lng: gallery.lng != null ? String(gallery.lng) : '',
   })
 
   const [showEventForm, setShowEventForm] = useState(false)
@@ -51,6 +53,8 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
     end_date: '',
     opening_date: '',
     location: '',
+    lat: '',
+    lng: '',
     ticket_info: '',
     vip_access: false,
     external_link: '',
@@ -65,6 +69,8 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
       ...profileForm,
       slug: slugify(profileForm.name),
       founded_year: profileForm.founded_year ? parseInt(profileForm.founded_year) : null,
+      lat: profileForm.lat ? parseFloat(profileForm.lat) : null,
+      lng: profileForm.lng ? parseFloat(profileForm.lng) : null,
     }).eq('id', gallery.id)
 
     setSaving(false)
@@ -82,6 +88,8 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
       end_date: event.end_date?.slice(0, 16) || '',
       opening_date: event.opening_date?.slice(0, 16) || '',
       location: event.location || '',
+      lat: event.lat != null ? String(event.lat) : '',
+      lng: event.lng != null ? String(event.lng) : '',
       ticket_info: event.ticket_info || '',
       vip_access: event.vip_access,
       external_link: event.external_link || '',
@@ -95,7 +103,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
     setEventForm({
       title: '', description: '', event_type: 'exhibition',
       start_date: '', end_date: '', opening_date: '',
-      location: '', ticket_info: '', vip_access: false, external_link: '',
+      location: '', lat: '', lng: '', ticket_info: '', vip_access: false, external_link: '',
     })
   }
 
@@ -110,6 +118,8 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
       start_date: eventForm.start_date || null,
       end_date: eventForm.end_date || null,
       opening_date: eventForm.opening_date || null,
+      lat: eventForm.lat ? parseFloat(eventForm.lat) : null,
+      lng: eventForm.lng ? parseFloat(eventForm.lng) : null,
     }
 
     const { error } = editingEvent
@@ -233,6 +243,17 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Latitude (map)</Label>
+              <Input type="number" step="any" placeholder="e.g. 25.2048" value={profileForm.lat} onChange={(e) => setProfileForm({ ...profileForm, lat: e.target.value })} />
+            </div>
+            <div>
+              <Label>Longitude (map)</Label>
+              <Input type="number" step="any" placeholder="e.g. 55.2708" value={profileForm.lng} onChange={(e) => setProfileForm({ ...profileForm, lng: e.target.value })} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><Label htmlFor="website">Website</Label><Input id="website" value={profileForm.website} onChange={(e) => setProfileForm({ ...profileForm, website: e.target.value })} /></div>
             <div><Label htmlFor="instagram">Instagram</Label><Input id="instagram" value={profileForm.instagram} onChange={(e) => setProfileForm({ ...profileForm, instagram: e.target.value })} /></div>
             <div><Label htmlFor="email">Email</Label><Input id="email" type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} /></div>
@@ -290,6 +311,16 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
                 <div>
                   <Label>Location</Label>
                   <Input value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} />
+                </div>
+                <div className="sm:col-span-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Latitude (map)</Label>
+                    <Input type="number" step="any" placeholder="e.g. 25.2048" value={eventForm.lat} onChange={(e) => setEventForm({ ...eventForm, lat: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Longitude (map)</Label>
+                    <Input type="number" step="any" placeholder="e.g. 55.2708" value={eventForm.lng} onChange={(e) => setEventForm({ ...eventForm, lng: e.target.value })} />
+                  </div>
                 </div>
                 <div>
                   <Label>Ticket Info</Label>

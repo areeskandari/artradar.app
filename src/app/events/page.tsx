@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     url: '/events',
   },
   alternates: { canonical: '/events' },
+  robots: { index: true, follow: true },
 }
 
 interface Props {
@@ -82,7 +83,7 @@ async function EventsGrid({ searchParams }: Props) {
 
 export default async function EventsPage({ searchParams }: Props) {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
       <div className="mb-8">
         <h1 className="font-serif text-4xl text-ink-900 mb-2">Events</h1>
         <p className="text-ink-500">Exhibitions, talks, workshops, and performances across Dubai.</p>

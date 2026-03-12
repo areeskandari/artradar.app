@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, UserPlus } from 'lucide-react'
+import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea, Label, Select } from '@/components/ui/Input'
+import { MultiSelect } from '@/components/ui/MultiSelect'
 import { Badge } from '@/components/ui/Badge'
 import { EventTypeBadge } from '@/components/ui/EventTypeBadge'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES } from '@/lib/utils'
 import type { Gallery, Artist, Event, NewsPost, Subscriber } from '@/types'
 
-type Tab = 'overview' | 'pending' | 'galleries' | 'artists' | 'events' | 'news' | 'subscribers'
+type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'subscribers'
 
 interface Props {
   galleries: Gallery[]
@@ -20,9 +21,12 @@ interface Props {
   events: Event[]
   news: NewsPost[]
   subscribers: Subscriber[]
+  galleryArtists: Record<string, string[]>
+  eventArtists: Record<string, string[]>
+  galleryAreas: { id: string; value: string; label: string; sort_order: number }[]
 }
 
-export function SuperAdminClient({ galleries, artists, events, news, subscribers }: Props) {
+export function SuperAdminClient({ galleries, artists, events, news, subscribers, galleryArtists, eventArtists, galleryAreas }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [message, setMessage] = useState('')
@@ -38,6 +42,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [editGalleryForm, setEditGalleryForm] = useState({
     name: '', description: '', address: '', area: '' as string, type: 'gallery' as string,
     website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '',
+    lat: '', lng: '',
     is_featured: false, subscription_active: false,
   })
 
@@ -48,12 +53,28 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
   const [editEventForm, setEditEventForm] = useState({
     title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '',
+    lat: '', lng: '',
     gallery_id: '' as string, event_type: 'exhibition' as string, ticket_info: '', vip_access: false, is_featured: false,
   })
 
   const [editNewsForm, setEditNewsForm] = useState({
     title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '',
   })
+
+  // Relation multi-select state (when editing an entity)
+  const [editGalleryArtistIds, setEditGalleryArtistIds] = useState<string[]>([])
+  const [editGalleryEventIds, setEditGalleryEventIds] = useState<string[]>([])
+  const [editGalleryNewsIds, setEditGalleryNewsIds] = useState<string[]>([])
+  const [editEventArtistIds, setEditEventArtistIds] = useState<string[]>([])
+  const [editArtistGalleryIds, setEditArtistGalleryIds] = useState<string[]>([])
+  const [editArtistEventIds, setEditArtistEventIds] = useState<string[]>([])
+  const [editArtistNewsIds, setEditArtistNewsIds] = useState<string[]>([])
+
+  // Gallery areas (Settings): list from props, local state for add/edit
+  const [areas, setAreas] = useState<{ id: string; value: string; label: string; sort_order: number }[]>([])
+  const [editingAreaId, setEditingAreaId] = useState<string | null>(null)
+  const [areaForm, setAreaForm] = useState({ value: '', label: '' })
+  const [showAreaForm, setShowAreaForm] = useState(false)
 
   // Pending users (awaiting admin role)
   const [pendingUsers, setPendingUsers] = useState<{ id: string; email?: string; created_at: string }[]>([])
@@ -69,6 +90,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [galleryForm, setGalleryForm] = useState({
     name: '', description: '', address: '', area: '' as string, type: 'gallery' as string,
     website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '',
+    lat: '', lng: '',
     is_featured: false, subscription_active: false,
   })
 
@@ -83,6 +105,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [showEventForm, setShowEventForm] = useState(false)
   const [eventForm, setEventForm] = useState({
     title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '',
+    lat: '', lng: '',
     gallery_id: '' as string, event_type: 'exhibition' as string, ticket_info: '', vip_access: false, is_featured: false,
   })
 
@@ -167,15 +190,42 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       phone: editGalleryForm.phone || null,
       submission_policy: editGalleryForm.submission_policy || null,
       founded_year: editGalleryForm.founded_year ? parseInt(editGalleryForm.founded_year, 10) : null,
+      lat: editGalleryForm.lat ? parseFloat(editGalleryForm.lat) : null,
+      lng: editGalleryForm.lng ? parseFloat(editGalleryForm.lng) : null,
       is_featured: editGalleryForm.is_featured,
       subscription_active: editGalleryForm.subscription_active,
     }).eq('id', id)
-    setSaving(false)
-    setMessage(error ? `Error: ${error.message}` : 'Gallery updated!')
-    if (!error) {
-      setEditingGalleryId(null)
-      router.refresh()
+    if (error) {
+      setSaving(false)
+      setMessage(`Error: ${error.message}`)
+      return
     }
+    await supabase.from('gallery_artists').delete().eq('gallery_id', id)
+    if (editGalleryArtistIds.length > 0) {
+      await supabase.from('gallery_artists').insert(editGalleryArtistIds.map((artist_id) => ({ gallery_id: id, artist_id })))
+    }
+    const previouslyLinkedEventIds = events.filter((e) => e.gallery_id === id).map((e) => e.id)
+    for (const eventId of previouslyLinkedEventIds) {
+      if (!editGalleryEventIds.includes(eventId)) {
+        await supabase.from('events').update({ gallery_id: null }).eq('id', eventId)
+      }
+    }
+    for (const eventId of editGalleryEventIds) {
+      await supabase.from('events').update({ gallery_id: id }).eq('id', eventId)
+    }
+    const previouslyLinkedNewsIds = news.filter((n) => n.related_gallery_id === id).map((n) => n.id)
+    for (const newsId of previouslyLinkedNewsIds) {
+      if (!editGalleryNewsIds.includes(newsId)) {
+        await supabase.from('news').update({ related_gallery_id: null }).eq('id', newsId)
+      }
+    }
+    for (const newsId of editGalleryNewsIds) {
+      await supabase.from('news').update({ related_gallery_id: id }).eq('id', newsId)
+    }
+    setSaving(false)
+    setMessage('Gallery updated!')
+    setEditingGalleryId(null)
+    router.refresh()
   }
 
   async function updateArtist(id: string) {
@@ -196,12 +246,32 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       open_to_collaboration: editArtistForm.open_to_collaboration,
       is_verified: editArtistForm.is_verified,
     }).eq('id', id)
-    setSaving(false)
-    setMessage(error ? `Error: ${error.message}` : 'Artist updated!')
-    if (!error) {
-      setEditingArtistId(null)
-      router.refresh()
+    if (error) {
+      setSaving(false)
+      setMessage(`Error: ${error.message}`)
+      return
     }
+    await supabase.from('gallery_artists').delete().eq('artist_id', id)
+    if (editArtistGalleryIds.length > 0) {
+      await supabase.from('gallery_artists').insert(editArtistGalleryIds.map((gallery_id) => ({ gallery_id, artist_id: id })))
+    }
+    await supabase.from('event_artists').delete().eq('artist_id', id)
+    if (editArtistEventIds.length > 0) {
+      await supabase.from('event_artists').insert(editArtistEventIds.map((event_id) => ({ event_id, artist_id: id })))
+    }
+    const previouslyLinkedNewsIds = news.filter((n) => n.related_artist_id === id).map((n) => n.id)
+    for (const newsId of previouslyLinkedNewsIds) {
+      if (!editArtistNewsIds.includes(newsId)) {
+        await supabase.from('news').update({ related_artist_id: null }).eq('id', newsId)
+      }
+    }
+    for (const newsId of editArtistNewsIds) {
+      await supabase.from('news').update({ related_artist_id: id }).eq('id', newsId)
+    }
+    setSaving(false)
+    setMessage('Artist updated!')
+    setEditingArtistId(null)
+    router.refresh()
   }
 
   async function updateEvent(id: string) {
@@ -219,18 +289,27 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       end_date: editEventForm.end_date || null,
       opening_date: editEventForm.opening_date || null,
       location: editEventForm.location || null,
+      lat: editEventForm.lat ? parseFloat(editEventForm.lat) : null,
+      lng: editEventForm.lng ? parseFloat(editEventForm.lng) : null,
       gallery_id: editEventForm.gallery_id || null,
       event_type: (editEventForm.event_type as 'exhibition' | 'talk' | 'art_fair' | 'workshop' | 'opening' | 'performance') || null,
       ticket_info: editEventForm.ticket_info || null,
       vip_access: editEventForm.vip_access,
       is_featured: editEventForm.is_featured,
     }).eq('id', id)
-    setSaving(false)
-    setMessage(error ? `Error: ${error.message}` : 'Event updated!')
-    if (!error) {
-      setEditingEventId(null)
-      router.refresh()
+    if (error) {
+      setSaving(false)
+      setMessage(`Error: ${error.message}`)
+      return
     }
+    await supabase.from('event_artists').delete().eq('event_id', id)
+    if (editEventArtistIds.length > 0) {
+      await supabase.from('event_artists').insert(editEventArtistIds.map((artist_id) => ({ event_id: id, artist_id })))
+    }
+    setSaving(false)
+    setMessage('Event updated!')
+    setEditingEventId(null)
+    router.refresh()
   }
 
   async function updateNews(id: string) {
@@ -295,6 +374,8 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       phone: galleryForm.phone || null,
       submission_policy: galleryForm.submission_policy || null,
       founded_year: galleryForm.founded_year ? parseInt(galleryForm.founded_year, 10) : null,
+      lat: galleryForm.lat ? parseFloat(galleryForm.lat) : null,
+      lng: galleryForm.lng ? parseFloat(galleryForm.lng) : null,
       is_featured: galleryForm.is_featured,
       subscription_active: galleryForm.subscription_active,
     })
@@ -302,7 +383,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     setMessage(error ? `Error: ${error.message}` : 'Gallery created!')
     if (!error) {
       setShowGalleryForm(false)
-      setGalleryForm({ name: '', description: '', address: '', area: '', type: 'gallery', website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '', is_featured: false, subscription_active: false })
+      setGalleryForm({ name: '', description: '', address: '', area: '', type: 'gallery', website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '', lat: '', lng: '', is_featured: false, subscription_active: false })
       router.refresh()
     }
   }
@@ -361,6 +442,8 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       end_date: eventForm.end_date || null,
       opening_date: eventForm.opening_date || null,
       location: eventForm.location || null,
+      lat: eventForm.lat ? parseFloat(eventForm.lat) : null,
+      lng: eventForm.lng ? parseFloat(eventForm.lng) : null,
       gallery_id: eventForm.gallery_id || null,
       event_type: (eventForm.event_type as 'exhibition' | 'talk' | 'art_fair' | 'workshop' | 'opening' | 'performance') || null,
       ticket_info: eventForm.ticket_info || null,
@@ -371,7 +454,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     setMessage(error ? `Error: ${error.message}` : 'Event created!')
     if (!error) {
       setShowEventForm(false)
-      setEventForm({ title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '', gallery_id: '', event_type: 'exhibition', ticket_info: '', vip_access: false, is_featured: false })
+      setEventForm({ title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '', lat: '', lng: '', gallery_id: '', event_type: 'exhibition', ticket_info: '', vip_access: false, is_featured: false })
       router.refresh()
     }
   }
@@ -395,8 +478,54 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   }
 
   useEffect(() => {
-    if (tab === 'pending') loadPendingUsers()
+    if (tab === 'settings') loadPendingUsers()
   }, [tab])
+
+  useEffect(() => {
+    setAreas(galleryAreas)
+  }, [galleryAreas])
+
+  async function saveGalleryArea() {
+    const value = areaForm.value.trim()
+    const label = areaForm.label.trim()
+    if (!value || !label) {
+      setMessage('Value and label are required')
+      return
+    }
+    setSaving(true)
+    setMessage('')
+    if (editingAreaId) {
+      const { error } = await supabase.from('gallery_areas').update({ value, label }).eq('id', editingAreaId)
+      setSaving(false)
+      setMessage(error ? `Error: ${error.message}` : 'Area updated!')
+      if (!error) {
+        setEditingAreaId(null)
+        setAreaForm({ value: '', label: '' })
+        router.refresh()
+      }
+    } else {
+      const maxOrder = areas.length ? Math.max(...areas.map((a) => a.sort_order), 0) : 0
+      const { error } = await supabase.from('gallery_areas').insert({ value, label, sort_order: maxOrder + 1 })
+      setSaving(false)
+      setMessage(error ? `Error: ${error.message}` : 'Area added!')
+      if (!error) {
+        setShowAreaForm(false)
+        setAreaForm({ value: '', label: '' })
+        router.refresh()
+      }
+    }
+  }
+
+  async function deleteGalleryArea(id: string, value: string) {
+    if (!confirm(`Remove area "${value}"? Galleries using it will have their area cleared.`)) return
+    setSaving(true)
+    await supabase.from('galleries').update({ area: null }).eq('area', value)
+    await supabase.from('gallery_areas').delete().eq('id', id)
+    setSaving(false)
+    setMessage('Area removed.')
+    setEditingAreaId(null)
+    router.refresh()
+  }
 
   async function assignRole(userId: string, role: 'super_admin' | 'gallery_admin' | 'artist', galleryId?: string, artistId?: string) {
     setAssigningId(userId)
@@ -422,7 +551,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'overview', label: 'Overview', icon: <Shield size={14} /> },
-    { id: 'pending', label: 'Pending access', icon: <UserPlus size={14} />, count: pendingUsers.length },
+    { id: 'settings', label: 'Settings', icon: <Settings size={14} />, count: pendingUsers.length > 0 ? pendingUsers.length : undefined },
     { id: 'galleries', label: 'Galleries', icon: <Building2 size={14} />, count: galleries.length },
     { id: 'artists', label: 'Artists', icon: <User size={14} />, count: artists.length },
     { id: 'events', label: 'Events', icon: <Calendar size={14} />, count: events.length },
@@ -487,10 +616,12 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
         </div>
       )}
 
-      {/* PENDING ACCESS */}
-      {tab === 'pending' && (
-        <div>
-          <h2 className="font-serif text-xl text-ink-900 mb-2">Users awaiting admin access</h2>
+      {/* SETTINGS */}
+      {tab === 'settings' && (
+        <div className="space-y-10">
+          {/* Pending requests */}
+          <div>
+            <h2 className="font-serif text-xl text-ink-900 mb-2">Pending requests</h2>
           <p className="text-sm text-ink-500 mb-4">
             These users have signed in but don’t have an admin role yet. Assign a role to grant access.
           </p>
@@ -529,9 +660,100 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
               </table>
             </div>
           )}
-          <p className="text-xs text-ink-400 mt-4">
-            For artist or gallery admin roles, add the profile in Supabase (admin_profiles) and link gallery_id or artist_id.
-          </p>
+            <p className="text-xs text-ink-400 mt-4">
+              For artist or gallery admin roles, add the profile in Supabase (admin_profiles) and link gallery_id or artist_id.
+            </p>
+          </div>
+
+          {/* Gallery areas */}
+          <div>
+            <h2 className="font-serif text-xl text-ink-900 mb-2">Gallery areas</h2>
+            <p className="text-sm text-ink-500 mb-4">
+              Areas used when creating or editing galleries (e.g. DIFC, Alserkal Avenue). Add, edit, or remove.
+            </p>
+            {showAreaForm && (
+              <div className="bg-white border border-ink-200 rounded-lg p-4 mb-4 space-y-3 max-w-md">
+                <h3 className="font-medium text-ink-900">{editingAreaId ? 'Edit area' : 'Add area'}</h3>
+                <div>
+                  <Label>Value (slug, used in URLs)</Label>
+                  <Input
+                    value={areaForm.value}
+                    onChange={(e) => setAreaForm((f) => ({ ...f, value: e.target.value }))}
+                    placeholder="e.g. alserkal-avenue"
+                    disabled={!!editingAreaId}
+                  />
+                </div>
+                <div>
+                  <Label>Label (display name)</Label>
+                  <Input
+                    value={areaForm.label}
+                    onChange={(e) => setAreaForm((f) => ({ ...f, label: e.target.value }))}
+                    placeholder="e.g. Alserkal Avenue"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={saveGalleryArea} disabled={saving} variant="primary" size="sm">
+                    {saving ? 'Saving…' : editingAreaId ? 'Update' : 'Add'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowAreaForm(false)
+                      setEditingAreaId(null)
+                      setAreaForm({ value: '', label: '' })
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+            {!showAreaForm && (
+              <Button onClick={() => setShowAreaForm(true)} variant="gold" size="sm" className="mb-4">
+                <Plus size={14} /> Add area
+              </Button>
+            )}
+            <div className="bg-white border border-ink-200 rounded-lg overflow-hidden">
+              {areas.length === 0 ? (
+                <p className="p-4 text-ink-500 text-sm">No areas yet. Add one above or run the gallery-areas migration.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-ink-200 bg-ink-50">
+                      <th className="text-left py-3 px-4 font-medium text-ink-700">Value</th>
+                      <th className="text-left py-3 px-4 font-medium text-ink-700">Label</th>
+                      <th className="text-right py-3 px-4 font-medium text-ink-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {areas.map((a) => (
+                      <tr key={a.id} className="border-b border-ink-100 hover:bg-ink-50/50">
+                        <td className="py-3 px-4 text-ink-900 font-mono text-xs">{a.value}</td>
+                        <td className="py-3 px-4 text-ink-900">{a.label}</td>
+                        <td className="py-3 px-4 text-right flex justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingAreaId(a.id)
+                              setAreaForm({ value: a.value, label: a.label })
+                              setShowAreaForm(true)
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => deleteGalleryArea(a.id, a.value)} disabled={saving}>
+                            <Trash2 size={14} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -565,11 +787,23 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                   <Label>Address</Label>
                   <Input value={galleryForm.address} onChange={(e) => setGalleryForm({ ...galleryForm, address: e.target.value })} />
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Latitude (map)</Label>
+                    <Input type="number" step="any" placeholder="e.g. 25.2048" value={galleryForm.lat} onChange={(e) => setGalleryForm({ ...galleryForm, lat: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Longitude (map)</Label>
+                    <Input type="number" step="any" placeholder="e.g. 55.2708" value={galleryForm.lng} onChange={(e) => setGalleryForm({ ...galleryForm, lng: e.target.value })} />
+                  </div>
+                </div>
                 <div>
                   <Label>Area</Label>
                   <Select value={galleryForm.area} onChange={(e) => setGalleryForm({ ...galleryForm, area: e.target.value })}>
                     <option value="">—</option>
-                    {GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+                    {galleryAreas.length > 0
+                      ? galleryAreas.map((a) => <option key={a.id} value={a.value}>{a.label}</option>)
+                      : GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                   </Select>
                 </div>
                 <div>
@@ -644,9 +878,14 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                           phone: gallery.phone || '',
                           submission_policy: gallery.submission_policy || '',
                           founded_year: gallery.founded_year ? String(gallery.founded_year) : '',
+                          lat: gallery.lat != null ? String(gallery.lat) : '',
+                          lng: gallery.lng != null ? String(gallery.lng) : '',
                           is_featured: !!gallery.is_featured,
                           subscription_active: !!gallery.subscription_active,
                         })
+                        setEditGalleryArtistIds(galleryArtists[gallery.id] || [])
+                        setEditGalleryEventIds(events.filter((e) => e.gallery_id === gallery.id).map((e) => e.id))
+                        setEditGalleryNewsIds(news.filter((n) => n.related_gallery_id === gallery.id).map((n) => n.id))
                       }}
                       className="text-left text-sm font-medium text-ink-900 hover:underline"
                       title="Edit gallery"
@@ -712,11 +951,23 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <Label>Address</Label>
                         <Input value={editGalleryForm.address} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, address: e.target.value })} />
                       </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label>Latitude (map)</Label>
+                          <Input type="number" step="any" placeholder="e.g. 25.2048" value={editGalleryForm.lat} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, lat: e.target.value })} />
+                        </div>
+                        <div>
+                          <Label>Longitude (map)</Label>
+                          <Input type="number" step="any" placeholder="e.g. 55.2708" value={editGalleryForm.lng} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, lng: e.target.value })} />
+                        </div>
+                      </div>
                       <div>
                         <Label>Area</Label>
                         <Select value={editGalleryForm.area} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, area: e.target.value })}>
                           <option value="">—</option>
-                          {GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+                          {galleryAreas.length > 0
+                            ? galleryAreas.map((a) => <option key={a.id} value={a.value}>{a.label}</option>)
+                            : GALLERY_AREAS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </Select>
                       </div>
                       <div>
@@ -758,6 +1009,33 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                           <input type="checkbox" checked={editGalleryForm.subscription_active} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, subscription_active: e.target.checked })} className="rounded border-ink-300" />
                           Partner (subscription active)
                         </label>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Artists</Label>
+                        <MultiSelect
+                          options={artists.map((a) => ({ id: a.id, label: a.name }))}
+                          value={editGalleryArtistIds}
+                          onChange={setEditGalleryArtistIds}
+                          placeholder="Select artists…"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Events (at this gallery)</Label>
+                        <MultiSelect
+                          options={events.map((e) => ({ id: e.id, label: e.title }))}
+                          value={editGalleryEventIds}
+                          onChange={setEditGalleryEventIds}
+                          placeholder="Select events…"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>News (related to this gallery)</Label>
+                        <MultiSelect
+                          options={news.map((n) => ({ id: n.id, label: n.title }))}
+                          value={editGalleryNewsIds}
+                          onChange={setEditGalleryNewsIds}
+                          placeholder="Select news…"
+                        />
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -859,6 +1137,9 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                           open_to_collaboration: !!artist.open_to_collaboration,
                           is_verified: !!artist.is_verified,
                         })
+                        setEditArtistGalleryIds(Object.entries(galleryArtists).filter(([, ids]) => ids.includes(artist.id)).map(([gid]) => gid))
+                        setEditArtistEventIds(Object.entries(eventArtists).filter(([, ids]) => ids.includes(artist.id)).map(([eid]) => eid))
+                        setEditArtistNewsIds(news.filter((n) => n.related_artist_id === artist.id).map((n) => n.id))
                       }}
                     >
                       {artist.name}
@@ -941,6 +1222,33 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                           Verified
                         </label>
                       </div>
+                      <div className="sm:col-span-2">
+                        <Label>Galleries</Label>
+                        <MultiSelect
+                          options={galleries.map((g) => ({ id: g.id, label: g.name }))}
+                          value={editArtistGalleryIds}
+                          onChange={setEditArtistGalleryIds}
+                          placeholder="Select galleries…"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Events</Label>
+                        <MultiSelect
+                          options={events.map((e) => ({ id: e.id, label: e.title }))}
+                          value={editArtistEventIds}
+                          onChange={setEditArtistEventIds}
+                          placeholder="Select events…"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>News (related to this artist)</Label>
+                        <MultiSelect
+                          options={news.map((n) => ({ id: n.id, label: n.title }))}
+                          value={editArtistNewsIds}
+                          onChange={setEditArtistNewsIds}
+                          placeholder="Select news…"
+                        />
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={() => updateArtist(artist.id)} disabled={saving} variant="primary" size="sm">
@@ -994,12 +1302,22 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                   <Label>Opening (optional)</Label>
                   <Input type="datetime-local" value={eventForm.opening_date} onChange={(e) => setEventForm({ ...eventForm, opening_date: e.target.value })} />
                 </div>
-                <div>
-                  <Label>Location</Label>
-                  <Input value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Gallery</Label>
+                      <div>
+                        <Label>Location</Label>
+                        <Input value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label>Latitude (map)</Label>
+                          <Input type="number" step="any" placeholder="e.g. 25.2048" value={eventForm.lat} onChange={(e) => setEventForm({ ...eventForm, lat: e.target.value })} />
+                        </div>
+                        <div>
+                          <Label>Longitude (map)</Label>
+                          <Input type="number" step="any" placeholder="e.g. 55.2708" value={eventForm.lng} onChange={(e) => setEventForm({ ...eventForm, lng: e.target.value })} />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Gallery</Label>
                   <Select value={eventForm.gallery_id} onChange={(e) => setEventForm({ ...eventForm, gallery_id: e.target.value })}>
                     <option value="">— No gallery —</option>
                     {galleries.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
@@ -1062,7 +1380,10 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                             ticket_info: event.ticket_info || '',
                             vip_access: !!event.vip_access,
                             is_featured: !!event.is_featured,
+                            lat: event.lat != null ? String(event.lat) : '',
+                            lng: event.lng != null ? String(event.lng) : '',
                           })
+                          setEditEventArtistIds(eventArtists[event.id] || [])
                         }}
                       >
                         {event.title}
@@ -1134,6 +1455,16 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <Label>Location</Label>
                         <Input value={editEventForm.location} onChange={(e) => setEditEventForm({ ...editEventForm, location: e.target.value })} />
                       </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label>Latitude (map)</Label>
+                          <Input type="number" step="any" placeholder="e.g. 25.2048" value={editEventForm.lat} onChange={(e) => setEditEventForm({ ...editEventForm, lat: e.target.value })} />
+                        </div>
+                        <div>
+                          <Label>Longitude (map)</Label>
+                          <Input type="number" step="any" placeholder="e.g. 55.2708" value={editEventForm.lng} onChange={(e) => setEditEventForm({ ...editEventForm, lng: e.target.value })} />
+                        </div>
+                      </div>
                       <div>
                         <Label>Gallery</Label>
                         <Select value={editEventForm.gallery_id} onChange={(e) => setEditEventForm({ ...editEventForm, gallery_id: e.target.value })}>
@@ -1146,6 +1477,15 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <Select value={editEventForm.event_type} onChange={(e) => setEditEventForm({ ...editEventForm, event_type: e.target.value })}>
                           {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </Select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Artists</Label>
+                        <MultiSelect
+                          options={artists.map((a) => ({ id: a.id, label: a.name }))}
+                          value={editEventArtistIds}
+                          onChange={setEditEventArtistIds}
+                          placeholder="Select artists…"
+                        />
                       </div>
                       <div className="sm:col-span-2">
                         <Label>Ticket info</Label>

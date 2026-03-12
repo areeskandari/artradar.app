@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     url: '/artists',
   },
   alternates: { canonical: '/artists' },
+  robots: { index: true, follow: true },
 }
 
 interface Props {
@@ -31,7 +32,7 @@ export default async function ArtistsPage({ searchParams }: Props) {
   const artists = (artistsData || []) as Artist[]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
       <div className="mb-8">
         <h1 className="font-serif text-4xl text-ink-900 mb-2">Artists</h1>
         <p className="text-ink-500">Discover artists in Dubai and the UAE.</p>
