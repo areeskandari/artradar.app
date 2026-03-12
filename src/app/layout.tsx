@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
-  icons: { icon: '/icon.svg', type: 'image/svg+xml' },
+  icons: { icon: '/icon.svg' },
   verification: {
     // Optional: add when you have them
     // google: 'google-site-verification-code',
