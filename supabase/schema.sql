@@ -23,6 +23,7 @@ CREATE TABLE galleries (
   cover_image_url text,
   social_links jsonb DEFAULT '{}',
   is_featured boolean DEFAULT false,
+  is_for_kids boolean DEFAULT false,
   subscription_active boolean DEFAULT false,
   subscription_ends_at timestamptz,
   stripe_customer_id text,
@@ -66,6 +67,7 @@ CREATE TABLE events (
   external_link text,
   created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   is_featured boolean DEFAULT false,
+  is_for_kids boolean DEFAULT false,
   created_at timestamptz DEFAULT now()
 );
 

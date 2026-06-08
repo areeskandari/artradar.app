@@ -1,6 +1,51 @@
 import Link from 'next/link'
-import { Instagram, Globe } from 'lucide-react'
+import {
+  Instagram,
+  Globe,
+  Building2,
+  Calendar,
+  Baby,
+  User,
+  Newspaper,
+  MessageCircle,
+  MapPin,
+  Clock,
+  Info,
+  Mail,
+  Heart,
+  Store,
+  type LucideIcon,
+} from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
+
+const linkClass = 'inline-flex items-center gap-2 text-ink-400 hover:text-gold-400 transition-colors'
+
+const EXPLORE_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/galleries', label: 'Galleries', icon: Building2 },
+  { href: '/events', label: 'Events', icon: Calendar },
+  { href: '/for-kids', label: 'For Kids', icon: Baby },
+  { href: '/artists', label: 'Artists', icon: User },
+  { href: '/news', label: 'News', icon: Newspaper },
+  { href: '/ask', label: 'Ask', icon: MessageCircle },
+  { href: '/map', label: 'Map', icon: MapPin },
+  { href: '/timeline', label: 'Timeline', icon: Clock },
+]
+
+const CONTACT_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/about', label: 'About', icon: Info },
+  { href: '/contact', label: 'Contact', icon: Mail },
+  { href: '/donate', label: 'Donate', icon: Heart },
+  { href: '/for-galleries', label: 'For Galleries', icon: Store },
+]
+
+function FooterLink({ href, label, icon: Icon }: { href: string; label: string; icon: LucideIcon }) {
+  return (
+    <Link href={href} className={linkClass}>
+      <Icon size={14} className="shrink-0 opacity-80" aria-hidden />
+      {label}
+    </Link>
+  )
+}
 
 export function Footer() {
   return (
@@ -21,19 +66,9 @@ export function Footer() {
           <div>
             <h4 className="type-eyebrow text-gold-400 mb-3">Explore</h4>
             <ul className="space-y-2 text-sm">
-              {[
-                { href: '/galleries', label: 'Galleries' },
-                { href: '/events', label: 'Events' },
-                { href: '/artists', label: 'Artists' },
-                { href: '/news', label: 'News' },
-                { href: '/ask', label: 'Ask' },
-                { href: '/map', label: 'Map' },
-                { href: '/timeline', label: 'Timeline' },
-              ].map((link) => (
+              {EXPLORE_LINKS.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-ink-400 hover:text-gold-400 transition-colors">
-                    {link.label}
-                  </Link>
+                  <FooterLink {...link} />
                 </li>
               ))}
             </ul>
@@ -47,8 +82,9 @@ export function Footer() {
                 <li key={area}>
                   <Link
                     href={`/galleries?area=${encodeURIComponent(area)}`}
-                    className="text-ink-400 hover:text-gold-400 transition-colors"
+                    className={linkClass}
                   >
+                    <MapPin size={14} className="shrink-0 opacity-80" aria-hidden />
                     {area}
                   </Link>
                 </li>
@@ -63,16 +99,9 @@ export function Footer() {
               Have a question or want to list an event? Message us on WhatsApp.
             </p>
             <ul className="space-y-2 text-sm">
-              {[
-                { href: '/about', label: 'About' },
-                { href: '/contact', label: 'Contact' },
-                { href: '/donate', label: 'Donate' },
-                { href: '/for-galleries', label: 'For Galleries' },
-              ].map((link) => (
+              {CONTACT_LINKS.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-ink-400 hover:text-gold-400 transition-colors">
-                    {link.label}
-                  </Link>
+                  <FooterLink {...link} />
                 </li>
               ))}
             </ul>

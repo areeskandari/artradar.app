@@ -41,6 +41,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
     founded_year: String(gallery.founded_year || ''),
     lat: gallery.lat != null ? String(gallery.lat) : '',
     lng: gallery.lng != null ? String(gallery.lng) : '',
+    is_for_kids: gallery.is_for_kids ?? false,
   })
 
   const [showEventForm, setShowEventForm] = useState(false)
@@ -57,6 +58,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
     lng: '',
     ticket_info: '',
     vip_access: false,
+    is_for_kids: false,
     external_link: '',
   })
 
@@ -92,6 +94,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
       lng: event.lng != null ? String(event.lng) : '',
       ticket_info: event.ticket_info || '',
       vip_access: event.vip_access,
+      is_for_kids: event.is_for_kids ?? false,
       external_link: event.external_link || '',
     })
     setShowEventForm(true)
@@ -103,7 +106,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
     setEventForm({
       title: '', description: '', event_type: 'exhibition',
       start_date: '', end_date: '', opening_date: '',
-      location: '', lat: '', lng: '', ticket_info: '', vip_access: false, external_link: '',
+      location: '', lat: '', lng: '', ticket_info: '', vip_access: false, is_for_kids: false, external_link: '',
     })
   }
 
@@ -265,6 +268,17 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
             <Textarea id="submission_policy" rows={3} value={profileForm.submission_policy} onChange={(e) => setProfileForm({ ...profileForm, submission_policy: e.target.value })} />
           </div>
 
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="gallery_is_for_kids"
+              checked={profileForm.is_for_kids}
+              onChange={(e) => setProfileForm({ ...profileForm, is_for_kids: e.target.checked })}
+              className="w-4 h-4 accent-gold-500"
+            />
+            <Label htmlFor="gallery_is_for_kids" className="mb-0">For kids (show on For Kids page)</Label>
+          </div>
+
           <Button onClick={saveProfile} disabled={saving} variant="primary">
             {saving ? 'Saving...' : 'Save Profile'}
           </Button>
@@ -337,15 +351,27 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
                 <Textarea rows={3} value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} />
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="vip_access"
-                  checked={eventForm.vip_access}
-                  onChange={(e) => setEventForm({ ...eventForm, vip_access: e.target.checked })}
-                  className="w-4 h-4 accent-gold-500"
-                />
-                <Label htmlFor="vip_access" className="mb-0">VIP Access Event</Label>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="vip_access"
+                    checked={eventForm.vip_access}
+                    onChange={(e) => setEventForm({ ...eventForm, vip_access: e.target.checked })}
+                    className="w-4 h-4 accent-gold-500"
+                  />
+                  <Label htmlFor="vip_access" className="mb-0">VIP Access Event</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="event_is_for_kids"
+                    checked={eventForm.is_for_kids}
+                    onChange={(e) => setEventForm({ ...eventForm, is_for_kids: e.target.checked })}
+                    className="w-4 h-4 accent-gold-500"
+                  />
+                  <Label htmlFor="event_is_for_kids" className="mb-0">For kids (show on For Kids page)</Label>
+                </div>
               </div>
 
               <div className="flex gap-2">

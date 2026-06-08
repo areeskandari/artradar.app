@@ -22,6 +22,7 @@ export interface Gallery {
   cover_image_url: string | null
   social_links: Record<string, string>
   is_featured: boolean
+  is_for_kids: boolean
   subscription_active: boolean
   subscription_ends_at: string | null
   stripe_customer_id: string | null
@@ -72,6 +73,7 @@ export interface Event {
   external_link: string | null
   created_by: string | null
   is_featured: boolean
+  is_for_kids: boolean
   created_at: string
   lat: number | null
   lng: number | null

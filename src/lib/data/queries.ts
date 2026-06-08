@@ -2,7 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import type { MapGallery, MapEvent } from '@/components/map/MapView'
-import type { Event, EventType } from '@/types'
+import type { Event, EventType, Gallery } from '@/types'
 
 const PUBLIC_REVALIDATE_SECONDS = 60
 
@@ -179,4 +179,39 @@ export async function fetchFilteredEvents(params: {
 
   const { data } = await query
   return (data || []) as Event[]
+}
+
+export async function fetchForKidsPageData() {
+  const supabase = await createPublicDataClient()
+  const now = new Date().toISOString()
+
+  const [workshopsRes, kidsEventsRes, kidsGalleriesRes] = await Promise.all([
+    supabase
+      .from('events')
+      .select('*, gallery:galleries(id, name, slug, area)')
+      .eq('event_type', 'workshop')
+      .gte('start_date', now)
+      .order('start_date')
+      .limit(24),
+    supabase
+      .from('events')
+      .select('*, gallery:galleries(id, name, slug, area)')
+      .eq('is_for_kids', true)
+      .neq('event_type', 'workshop')
+      .gte('start_date', now)
+      .order('start_date')
+      .limit(24),
+    supabase
+      .from('galleries')
+      .select('*')
+      .eq('is_for_kids', true)
+      .order('name')
+      .limit(24),
+  ])
+
+  return {
+    workshops: (workshopsRes.data || []) as Event[],
+    kidsEvents: (kidsEventsRes.data || []) as Event[],
+    kidsGalleries: (kidsGalleriesRes.data || []) as Gallery[],
+  }
 }

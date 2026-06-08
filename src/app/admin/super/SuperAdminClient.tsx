@@ -43,7 +43,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     name: '', description: '', address: '', area: '' as string, type: 'gallery' as string,
     website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '',
     lat: '', lng: '',
-    is_featured: false, subscription_active: false,
+    is_featured: false, is_for_kids: false, subscription_active: false,
   })
 
   const [editArtistForm, setEditArtistForm] = useState({
@@ -54,7 +54,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [editEventForm, setEditEventForm] = useState({
     title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '',
     lat: '', lng: '',
-    gallery_id: '' as string, event_type: 'exhibition' as string, ticket_info: '', vip_access: false, is_featured: false,
+    gallery_id: '' as string, event_type: 'exhibition' as string, ticket_info: '', vip_access: false, is_featured: false, is_for_kids: false,
   })
 
   const [editNewsForm, setEditNewsForm] = useState({
@@ -91,7 +91,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     name: '', description: '', address: '', area: '' as string, type: 'gallery' as string,
     website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '',
     lat: '', lng: '',
-    is_featured: false, subscription_active: false,
+    is_featured: false, is_for_kids: false, subscription_active: false,
   })
 
   // Artist form
@@ -106,7 +106,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [eventForm, setEventForm] = useState({
     title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '',
     lat: '', lng: '',
-    gallery_id: '' as string, event_type: 'exhibition' as string, ticket_info: '', vip_access: false, is_featured: false,
+    gallery_id: '' as string, event_type: 'exhibition' as string, ticket_info: '', vip_access: false, is_featured: false, is_for_kids: false,
   })
 
   const supabase = createClient()
@@ -193,6 +193,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       lat: editGalleryForm.lat ? parseFloat(editGalleryForm.lat) : null,
       lng: editGalleryForm.lng ? parseFloat(editGalleryForm.lng) : null,
       is_featured: editGalleryForm.is_featured,
+      is_for_kids: editGalleryForm.is_for_kids,
       subscription_active: editGalleryForm.subscription_active,
     }).eq('id', id)
     if (error) {
@@ -296,6 +297,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       ticket_info: editEventForm.ticket_info || null,
       vip_access: editEventForm.vip_access,
       is_featured: editEventForm.is_featured,
+      is_for_kids: editEventForm.is_for_kids,
     }).eq('id', id)
     if (error) {
       setSaving(false)
@@ -377,13 +379,14 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       lat: galleryForm.lat ? parseFloat(galleryForm.lat) : null,
       lng: galleryForm.lng ? parseFloat(galleryForm.lng) : null,
       is_featured: galleryForm.is_featured,
+      is_for_kids: galleryForm.is_for_kids,
       subscription_active: galleryForm.subscription_active,
     })
     setSaving(false)
     setMessage(error ? `Error: ${error.message}` : 'Gallery created!')
     if (!error) {
       setShowGalleryForm(false)
-      setGalleryForm({ name: '', description: '', address: '', area: '', type: 'gallery', website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '', lat: '', lng: '', is_featured: false, subscription_active: false })
+      setGalleryForm({ name: '', description: '', address: '', area: '', type: 'gallery', website: '', instagram: '', email: '', phone: '', submission_policy: '', founded_year: '', lat: '', lng: '', is_featured: false, is_for_kids: false, subscription_active: false })
       router.refresh()
     }
   }
@@ -449,12 +452,13 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
       ticket_info: eventForm.ticket_info || null,
       vip_access: eventForm.vip_access,
       is_featured: eventForm.is_featured,
+      is_for_kids: eventForm.is_for_kids,
     })
     setSaving(false)
     setMessage(error ? `Error: ${error.message}` : 'Event created!')
     if (!error) {
       setShowEventForm(false)
-      setEventForm({ title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '', lat: '', lng: '', gallery_id: '', event_type: 'exhibition', ticket_info: '', vip_access: false, is_featured: false })
+      setEventForm({ title: '', description: '', start_date: '', end_date: '', opening_date: '', location: '', lat: '', lng: '', gallery_id: '', event_type: 'exhibition', ticket_info: '', vip_access: false, is_featured: false, is_for_kids: false })
       router.refresh()
     }
   }
@@ -836,10 +840,14 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                   <Label>Submission policy</Label>
                   <Textarea rows={2} value={galleryForm.submission_policy} onChange={(e) => setGalleryForm({ ...galleryForm, submission_policy: e.target.value })} />
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={galleryForm.is_featured} onChange={(e) => setGalleryForm({ ...galleryForm, is_featured: e.target.checked })} className="rounded border-ink-300" />
                     Featured
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={galleryForm.is_for_kids} onChange={(e) => setGalleryForm({ ...galleryForm, is_for_kids: e.target.checked })} className="rounded border-ink-300" />
+                    For kids
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={galleryForm.subscription_active} onChange={(e) => setGalleryForm({ ...galleryForm, subscription_active: e.target.checked })} className="rounded border-ink-300" />
@@ -881,6 +889,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                           lat: gallery.lat != null ? String(gallery.lat) : '',
                           lng: gallery.lng != null ? String(gallery.lng) : '',
                           is_featured: !!gallery.is_featured,
+                          is_for_kids: !!gallery.is_for_kids,
                           subscription_active: !!gallery.subscription_active,
                         })
                         setEditGalleryArtistIds(galleryArtists[gallery.id] || [])
@@ -1000,10 +1009,14 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <Label>Submission policy</Label>
                         <Textarea rows={2} value={editGalleryForm.submission_policy} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, submission_policy: e.target.value })} />
                       </div>
-                      <div className="flex items-center gap-4 sm:col-span-2">
+                      <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
                         <label className="flex items-center gap-2 text-sm">
                           <input type="checkbox" checked={editGalleryForm.is_featured} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, is_featured: e.target.checked })} className="rounded border-ink-300" />
                           Featured
+                        </label>
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" checked={editGalleryForm.is_for_kids} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, is_for_kids: e.target.checked })} className="rounded border-ink-300" />
+                          For kids
                         </label>
                         <label className="flex items-center gap-2 text-sm">
                           <input type="checkbox" checked={editGalleryForm.subscription_active} onChange={(e) => setEditGalleryForm({ ...editGalleryForm, subscription_active: e.target.checked })} className="rounded border-ink-300" />
@@ -1333,7 +1346,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                   <Label>Ticket info</Label>
                   <Input value={eventForm.ticket_info} onChange={(e) => setEventForm({ ...eventForm, ticket_info: e.target.value })} placeholder="e.g. Free entry, AED 50" />
                 </div>
-                <div className="flex items-center gap-4 sm:col-span-2">
+                <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={eventForm.vip_access} onChange={(e) => setEventForm({ ...eventForm, vip_access: e.target.checked })} className="rounded border-ink-300" />
                     VIP access
@@ -1341,6 +1354,10 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={eventForm.is_featured} onChange={(e) => setEventForm({ ...eventForm, is_featured: e.target.checked })} className="rounded border-ink-300" />
                     Featured
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={eventForm.is_for_kids} onChange={(e) => setEventForm({ ...eventForm, is_for_kids: e.target.checked })} className="rounded border-ink-300" />
+                    For kids
                   </label>
                 </div>
               </div>
@@ -1380,6 +1397,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                             ticket_info: event.ticket_info || '',
                             vip_access: !!event.vip_access,
                             is_featured: !!event.is_featured,
+                            is_for_kids: !!event.is_for_kids,
                             lat: event.lat != null ? String(event.lat) : '',
                             lng: event.lng != null ? String(event.lng) : '',
                           })
@@ -1491,7 +1509,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <Label>Ticket info</Label>
                         <Input value={editEventForm.ticket_info} onChange={(e) => setEditEventForm({ ...editEventForm, ticket_info: e.target.value })} />
                       </div>
-                      <div className="flex items-center gap-4 sm:col-span-2">
+                      <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
                         <label className="flex items-center gap-2 text-sm">
                           <input type="checkbox" checked={editEventForm.vip_access} onChange={(e) => setEditEventForm({ ...editEventForm, vip_access: e.target.checked })} className="rounded border-ink-300" />
                           VIP access
@@ -1499,6 +1517,10 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         <label className="flex items-center gap-2 text-sm">
                           <input type="checkbox" checked={editEventForm.is_featured} onChange={(e) => setEditEventForm({ ...editEventForm, is_featured: e.target.checked })} className="rounded border-ink-300" />
                           Featured
+                        </label>
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" checked={editEventForm.is_for_kids} onChange={(e) => setEditEventForm({ ...editEventForm, is_for_kids: e.target.checked })} className="rounded border-ink-300" />
+                          For kids
                         </label>
                       </div>
                     </div>
