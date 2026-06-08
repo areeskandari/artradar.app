@@ -71,7 +71,7 @@ export function HomeHeroSection() {
           <p className="type-eyebrow text-gold-600 mb-3">Dubai art scene</p>
           <h1 className="type-display mb-3">Your Guide to Dubai&rsquo;s Art Scene</h1>
           <p className="type-lead-sm text-ink-600 max-w-2xl mx-auto">
-            Browse galleries by type, then explore events, artists, news, and more.
+            Step into a world of art, where vibrant, exhibitions meet the warmth of a living environment. Discover, connect and be inspired.
           </p>
           <div className="gold-divider w-24 mx-auto mt-5" />
         </div>
