@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { DonateForm } from './DonateForm'
-import { Heart } from 'lucide-react'
+import { PageHeader } from '@/components/ui/Typography'
 
 export const metadata: Metadata = {
   title: 'Donate',
@@ -21,20 +21,16 @@ const SUGGESTED_AMOUNTS = [5, 10, 50, 100, 200, 500]
 export default function DonatePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 w-full min-w-0">
-      <div className="mb-10">
-        <h1 className="font-serif text-4xl sm:text-5xl text-ink-900 mb-4 flex items-center gap-3">
-          <Heart size={40} className="text-gold-500" />
-          Support Art Radar
-        </h1>
-        <p className="text-lg text-ink-600 leading-relaxed">
-          Art Radar is a free guide to Dubai’s galleries, exhibitions, artists, and events. We help people discover what’s on, save time, and explore the city’s art scene with confidence — without paywalls or memberships.
-        </p>
-        <div className="gold-divider w-24 mt-6" />
-      </div>
+      <PageHeader
+        eyebrow="Community supported"
+        title="Support Art Radar"
+        description="Art Radar is a free guide to Dubai's galleries, exhibitions, artists, and events — helping people discover what's on without paywalls or memberships."
+        className="mb-10"
+      />
 
-      <div className="bg-white border border-ink-200 rounded-xl p-6 sm:p-8 mb-8">
-        <h2 className="font-serif text-xl text-ink-900 mb-2">Why donate?</h2>
-        <ul className="space-y-3 text-ink-600 text-sm sm:text-base">
+      <div className="bg-card border border-ink-200 rounded-xl p-6 sm:p-8 mb-8">
+        <h2 className="type-h3 mb-2">Why donate?</h2>
+        <ul className="space-y-3 type-body text-ink-600">
           <li className="flex gap-2">
             <span className="text-gold-500 shrink-0">·</span>
             <span>Keep our directory, event calendar, and map free for everyone — galleries, artists, and visitors alike.</span>

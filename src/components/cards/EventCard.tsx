@@ -40,7 +40,7 @@ export function EventCard({ event, className, variant = 'default', showArtists, 
   return (
     <Link href={`/events/${event.slug}`} className={cn('group block', className)}>
       <div className={cn(
-        'bg-white rounded-lg overflow-hidden border card-hover h-full flex flex-col',
+        'bg-card rounded-lg overflow-hidden border card-hover h-full flex flex-col',
         event.is_featured ? 'border-gold-300' : 'border-ink-100',
         active && 'ring-1 ring-teal-300'
       )}>
@@ -72,8 +72,8 @@ export function EventCard({ event, className, variant = 'default', showArtists, 
         {/* Content */}
         <div className="p-4 flex-1 flex flex-col gap-2">
           <h3 className={cn(
-            'font-serif text-ink-900 leading-tight group-hover:text-gold-600 transition-colors line-clamp-2',
-            variant === 'featured' ? 'text-xl' : 'text-lg'
+            'type-card-title group-hover:text-gold-600 transition-colors line-clamp-2',
+            variant === 'featured' && 'text-h3'
           )}>
             {event.title}
           </h3>

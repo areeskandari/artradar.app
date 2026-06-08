@@ -604,7 +604,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
             { label: 'Subscribers', count: subscribers.length, sub: 'total', icon: Users },
             { label: 'Featured Galleries', count: galleries.filter(g => g.is_featured).length, sub: 'on homepage', icon: Star },
           ].map(({ label, count, sub, icon: Icon }) => (
-            <div key={label} className="bg-white border border-ink-200 rounded-lg p-4">
+            <div key={label} className="bg-card border border-ink-200 rounded-lg p-4">
               <div className="flex items-center gap-2 text-ink-500 mb-2">
                 <Icon size={15} />
                 <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
@@ -630,7 +630,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
           ) : pendingUsers.length === 0 ? (
             <p className="text-ink-500">No pending users.</p>
           ) : (
-            <div className="bg-white border border-ink-200 rounded-lg overflow-hidden">
+            <div className="bg-card border border-ink-200 rounded-lg overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-ink-200 bg-ink-50">
@@ -672,7 +672,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
               Areas used when creating or editing galleries (e.g. DIFC, Alserkal Avenue). Add, edit, or remove.
             </p>
             {showAreaForm && (
-              <div className="bg-white border border-ink-200 rounded-lg p-4 mb-4 space-y-3 max-w-md">
+              <div className="bg-card border border-ink-200 rounded-lg p-4 mb-4 space-y-3 max-w-md">
                 <h3 className="font-medium text-ink-900">{editingAreaId ? 'Edit area' : 'Add area'}</h3>
                 <div>
                   <Label>Value (slug, used in URLs)</Label>
@@ -714,7 +714,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                 <Plus size={14} /> Add area
               </Button>
             )}
-            <div className="bg-white border border-ink-200 rounded-lg overflow-hidden">
+            <div className="bg-card border border-ink-200 rounded-lg overflow-hidden">
               {areas.length === 0 ? (
                 <p className="p-4 text-ink-500 text-sm">No areas yet. Add one above or run the gallery-areas migration.</p>
               ) : (
@@ -768,7 +768,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
           </div>
 
           {showGalleryForm && (
-            <div className="bg-white border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
+            <div className="bg-card border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
               <h3 className="font-medium text-ink-900">Add Gallery</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
@@ -856,7 +856,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
           <div className="space-y-2">
             {galleries.map((gallery) => (
-              <div key={gallery.id} className="bg-white border border-ink-200 rounded-lg">
+              <div key={gallery.id} className="bg-card border border-ink-200 rounded-lg">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div>
                     <button
@@ -1063,7 +1063,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
           </div>
 
           {showArtistForm && (
-            <div className="bg-white border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
+            <div className="bg-card border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
               <h3 className="font-medium text-ink-900">Add Artist</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
@@ -1114,7 +1114,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
           <div className="space-y-2">
             {artists.map((artist) => (
-              <div key={artist.id} className="bg-white border border-ink-200 rounded-lg">
+              <div key={artist.id} className="bg-card border border-ink-200 rounded-lg">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div>
                     <button
@@ -1275,7 +1275,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
           </div>
 
           {showEventForm && (
-            <div className="bg-white border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
+            <div className="bg-card border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
               <h3 className="font-medium text-ink-900">Add Event</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
@@ -1353,7 +1353,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
           <div className="space-y-2">
             {events.map((event) => (
-              <div key={event.id} className="bg-white border border-ink-200 rounded-lg">
+              <div key={event.id} className="bg-card border border-ink-200 rounded-lg">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <EventTypeBadge type={event.event_type} size="sm" />
@@ -1527,7 +1527,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
           </div>
 
           {showNewsForm && (
-            <div className="bg-white border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
+            <div className="bg-card border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
               <h3 className="font-medium text-ink-900">Create News Post</h3>
               <div>
                 <Label>Title</Label>
@@ -1572,7 +1572,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
           <div className="space-y-2">
             {news.map((post) => (
-              <div key={post.id} className="bg-white border border-ink-200 rounded-lg">
+              <div key={post.id} className="bg-card border border-ink-200 rounded-lg">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div>
                     <button

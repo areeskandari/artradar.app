@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Calendar, MapPin, ExternalLink, Star, Ticket } from 'lucide-react'
+import { getEventBySlug } from '@/lib/data/queries'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import { ArtistCard } from '@/components/cards/ArtistCard'
 import { SubscribeForm } from '@/components/sections/SubscribeForm'
@@ -18,8 +19,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-  const { data: event } = await supabase.from('events').select('title, description, image_url').eq('slug', slug).single()
+  const event = await getEventBySlug(slug)
   if (!event) return {}
   const description = stripHtml(event.description)?.slice(0, 160) || `Event: ${event.title} — Art Radar`
   const imageUrl = event.image_url || getPlaceholderImage('event', slug)
@@ -40,15 +40,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventPage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-
-  const { data: event } = await supabase
-    .from('events')
-    .select('*, gallery:galleries(*)')
-    .eq('slug', slug)
-    .single()
+  const event = await getEventBySlug(slug)
 
   if (!event) notFound()
+
+  const supabase = await createPublicDataClient()
 
   const { data: artistLinks } = await supabase
     .from('event_artists')
@@ -81,7 +77,7 @@ export default async function EventPage({ params }: Props) {
           {/* Main */}
           <div className="lg:col-span-2 space-y-8 min-w-0">
             <div>
-              <h1 className="font-serif text-4xl sm:text-5xl text-ink-900 leading-tight mb-3">
+              <h1 className="type-detail-title mb-3">
                 {event.title}
               </h1>
 
@@ -124,7 +120,7 @@ export default async function EventPage({ params }: Props) {
             {/* Artists */}
             {artists.length > 0 && (
               <div>
-                <h2 className="font-serif text-2xl text-ink-900 mb-4">Artists</h2>
+                <h2 className="type-h2 mb-4">Artists</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {artists.map((artist) => (
                     <ArtistCard key={artist.id} artist={artist} />
@@ -137,7 +133,7 @@ export default async function EventPage({ params }: Props) {
           {/* Sidebar */}
           <div className="space-y-5 min-w-0">
             {/* Ticket info */}
-            <div className="bg-white border border-ink-200 rounded-lg p-5">
+            <div className="bg-card border border-ink-200 rounded-lg p-5">
               <h3 className="font-medium text-ink-900 mb-3 flex items-center gap-2">
                 <Ticket size={16} className="text-gold-500" /> Admission
               </h3>

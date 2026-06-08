@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import { NewsCard } from '@/components/cards/NewsCard'
+import { EmptyState, PageHeader } from '@/components/ui/Typography'
 import type { NewsPost } from '@/types'
 
 export const metadata: Metadata = {
@@ -32,11 +33,11 @@ export default async function NewsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl text-ink-900 mb-2">News & Updates</h1>
-        <p className="text-ink-500">Art world news from Dubai and the wider UAE.</p>
-        <div className="gold-divider w-32 mt-3" />
-      </div>
+      <PageHeader
+        eyebrow="Editorial"
+        title="News & Updates"
+        description="Art world news from Dubai and the wider UAE — openings, announcements, and cultural highlights."
+      />
 
       {featured && (
         <div className="mb-10">
@@ -53,10 +54,7 @@ export default async function NewsPage() {
       )}
 
       {allPosts.length === 0 && (
-        <div className="text-center py-20 text-ink-500">
-          <p className="font-serif text-2xl mb-2">No news yet</p>
-          <p className="text-sm">Check back soon for art world updates.</p>
-        </div>
+        <EmptyState title="No news yet" description="Check back soon for art world updates." />
       )}
     </div>
   )

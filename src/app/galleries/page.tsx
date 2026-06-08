@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Suspense } from 'react'
-import { createPublicDataClient } from '@/lib/supabase/server'
+import { ArrowRight } from 'lucide-react'
+import { fetchFilteredGalleries, getGalleryEventCounts } from '@/lib/data/queries'
 import { GalleryCard } from '@/components/cards/GalleryCard'
 import { FilterBar } from '@/components/sections/FilterBar'
 import { GalleryCardSkeleton } from '@/components/ui/Skeleton'
+import { EmptyState, PageHeader } from '@/components/ui/Typography'
 import type { Gallery } from '@/types'
 
 export const metadata: Metadata = {
@@ -19,67 +22,45 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
+export const revalidate = 60
+
 interface Props {
   searchParams: Promise<{ q?: string; area?: string; type?: string }>
 }
 
 async function GalleriesGrid({ searchParams }: Props) {
   const params = await searchParams
-  const supabase = await createPublicDataClient()
 
-  let query = supabase
-    .from('galleries')
-    .select('*')
-    .order('is_featured', { ascending: false })
-    .order('subscription_active', { ascending: false })
-    .order('name')
+  const [{ data: galleries, error: galleriesError }, countMap] = await Promise.all([
+    fetchFilteredGalleries({
+      q: params.q,
+      area: params.area,
+      type: params.type,
+      featuredSort: true,
+    }),
+    getGalleryEventCounts(),
+  ])
 
-  if (params.q) {
-    query = query.ilike('name', `%${params.q}%`)
-  }
-  if (params.area) {
-    query = query.eq('area', params.area)
-  }
-  if (params.type) {
-    query = query.eq('type', params.type)
-  }
-
-  const { data: galleries, error: galleriesError } = await query
+  const galleriesWithCounts = galleries.map((g) => ({
+    ...g,
+    upcoming_events_count: countMap[g.id] || 0,
+  })) as Gallery[]
 
   if (galleriesError) {
     console.error('[Galleries] Supabase error:', galleriesError.message, galleriesError.details)
   }
 
-  // Count upcoming events per gallery
-  const now = new Date().toISOString()
-  const { data: eventCounts } = await supabase
-    .from('events')
-    .select('gallery_id')
-    .gte('end_date', now)
-    .not('gallery_id', 'is', null)
-
-  const countMap: Record<string, number> = {}
-  eventCounts?.forEach((e) => {
-    if (e.gallery_id) countMap[e.gallery_id] = (countMap[e.gallery_id] || 0) + 1
-  })
-
-  const galleriesWithCounts = (galleries || []).map((g) => ({
-    ...g,
-    upcoming_events_count: countMap[g.id] || 0,
-  })) as Gallery[]
-
   if (galleriesWithCounts.length === 0) {
     return (
-      <div className="text-center py-20 text-ink-500">
-        <p className="font-serif text-2xl mb-2">No galleries found</p>
-        <p className="text-sm">Try adjusting your filters</p>
+      <div>
+        <EmptyState title="No galleries found" description="Try adjusting your filters" />
         {process.env.NODE_ENV === 'development' && galleriesError && (
-          <p className="mt-4 text-xs text-red-600 max-w-md mx-auto">
+          <p className="mt-4 text-xs text-red-600 max-w-md mx-auto text-center">
             Supabase: {galleriesError.message}
           </p>
         )}
         {process.env.NODE_ENV === 'development' && !galleriesError && (
-          <p className="mt-4 text-xs text-ink-400 max-w-md mx-auto">
+          <p className="mt-4 text-xs text-ink-400 max-w-md mx-auto text-center">
             If data exists in Supabase: add SUPABASE_SERVICE_ROLE_KEY to .env.local (Project Settings → API → service_role), then restart the dev server.
           </p>
         )}
@@ -99,10 +80,20 @@ async function GalleriesGrid({ searchParams }: Props) {
 export default async function GalleriesPage({ searchParams }: Props) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl text-ink-900 mb-2">Gallery Directory</h1>
-        <p className="text-ink-500">Discover galleries, museums, and libraries across Dubai and Abu Dhabi.</p>
-        <div className="gold-divider w-32 mt-3" />
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <PageHeader
+          eyebrow="Directory"
+          title="Gallery Directory"
+          description="Discover galleries, museums, and libraries across Dubai and Abu Dhabi."
+          className="mb-0"
+        />
+        <Link
+          href="/for-galleries"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gold-500 text-white font-medium hover:bg-gold-600 transition-colors shrink-0 self-start"
+        >
+          Ask to join
+          <ArrowRight size={16} />
+        </Link>
       </div>
 
       <div className="mb-6">

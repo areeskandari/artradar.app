@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'picsum.photos' },

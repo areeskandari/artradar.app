@@ -4,6 +4,7 @@ import { createPublicDataClient } from '@/lib/supabase/server'
 import { EventCard } from '@/components/cards/EventCard'
 import type { Event } from '@/types'
 import { format, addDays, parseISO } from 'date-fns'
+import { PageHeader } from '@/components/ui/Typography'
 
 export const metadata: Metadata = {
   title: 'Timeline',
@@ -45,11 +46,11 @@ export default async function TimelinePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl text-ink-900 mb-2">Timeline</h1>
-        <p className="text-ink-500">Events over the next 30 days.</p>
-        <div className="gold-divider w-32 mt-3" />
-      </div>
+      <PageHeader
+        eyebrow="30 days ahead"
+        title="Timeline"
+        description="A day-by-day view of exhibitions, openings, and events over the next month."
+      />
 
       {sortedDays.length === 0 ? (
         <p className="text-ink-500 py-12">No events in the next 30 days. Check back soon or browse <Link href="/events" className="text-gold-600 hover:underline">all events</Link>.</p>
@@ -76,7 +77,7 @@ export default async function TimelinePage() {
               </div>
               {/* Date + events */}
               <div className="min-w-0">
-                <h2 className="font-serif text-lg sm:text-xl text-ink-800 mb-3 sm:mb-4">
+                <h2 className="type-h3 text-ink-800 mb-3 sm:mb-4">
                   {format(parseISO(day), 'EEEE, d MMMM yyyy')}
                 </h2>
                 <ul className="space-y-3">

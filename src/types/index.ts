@@ -88,6 +88,9 @@ export interface NewsPost {
   cover_image_url: string | null
   related_gallery_id: string | null
   related_artist_id: string | null
+  source_url: string | null
+  source_name: string | null
+  is_auto_imported?: boolean | null
   publish_date: string
   created_at: string
   // Joined fields

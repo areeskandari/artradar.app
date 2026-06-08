@@ -59,8 +59,8 @@ export function SubscribeForm({
   if (success) {
     return (
       <div className={`rounded-lg p-6 text-center ${isDark ? 'bg-ink-900 text-cream' : 'bg-gold-50 text-ink-900'}`}>
-        <p className="font-serif text-xl mb-2">You&rsquo;re subscribed.</p>
-        <p className={`text-sm ${isDark ? 'text-ink-400' : 'text-ink-600'}`}>
+        <p className="type-h3 mb-2">You&rsquo;re subscribed.</p>
+        <p className={`type-small ${isDark ? 'text-ink-400' : 'text-ink-600'}`}>
           We&rsquo;ll be in touch with the best of Dubai&rsquo;s art scene.
         </p>
       </div>
@@ -69,8 +69,8 @@ export function SubscribeForm({
 
   return (
     <div className={`rounded-lg p-6 ${isDark ? 'bg-ink-900 border border-ink-700' : 'bg-gold-50 border border-gold-200'}`}>
-      <h3 className={`font-serif text-xl mb-1 ${isDark ? 'text-white' : 'text-ink-900'}`}>{title}</h3>
-      <p className={`text-sm mb-4 ${isDark ? 'text-ink-400' : 'text-ink-600'}`}>{description}</p>
+      <h3 className={`type-h3 mb-1 ${isDark ? 'text-white' : 'text-ink-900'}`}>{title}</h3>
+      <p className={`type-small mb-4 ${isDark ? 'text-ink-400' : 'text-ink-600'}`}>{description}</p>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <Input

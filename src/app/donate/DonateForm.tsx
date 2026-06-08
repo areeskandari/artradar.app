@@ -102,7 +102,7 @@ export function DonateForm({ suggestedAmounts }: DonateFormProps) {
                 'py-3 px-4 rounded-lg border text-sm font-medium transition-colors',
                 selectedPreset === value
                   ? 'border-gold-500 bg-gold-50 text-gold-800'
-                  : 'border-ink-200 bg-white text-ink-700 hover:border-gold-300 hover:bg-gold-50/50'
+                  : 'border-ink-200 bg-card text-ink-700 hover:border-gold-300 hover:bg-gold-50/50'
               )}
             >
               ${value}

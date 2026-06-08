@@ -25,8 +25,8 @@ export default function Error({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 border border-red-200 mb-6">
           <AlertCircle className="w-8 h-8 text-red-600" />
         </div>
-        <h1 className="font-serif text-2xl text-ink-900 mb-2">Something went wrong</h1>
-        <p className="text-ink-600 text-sm mb-6">
+        <h1 className="type-h2 mb-2">Something went wrong</h1>
+        <p className="type-small text-ink-600 mb-6">
           We couldn’t load this page. Please try again.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -35,7 +35,7 @@ export default function Error({
           </Button>
           <Link
             href="/"
-            className="inline-flex items-center justify-center rounded-lg border border-ink-300 bg-white px-4 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50 transition-colors"
+            className="inline-flex items-center justify-center rounded-lg border border-ink-300 bg-card px-4 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50 transition-colors"
           >
             Back to home
           </Link>

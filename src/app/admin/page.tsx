@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {links.map(({ href, icon: Icon, label, desc }) => (
           <Link key={href} href={href}>
-            <div className="bg-white border border-ink-200 rounded-lg p-5 card-hover h-full">
+            <div className="bg-card border border-ink-200 rounded-lg p-5 card-hover h-full">
               <div className="w-10 h-10 bg-gold-50 border border-gold-200 rounded-lg flex items-center justify-center mb-3">
                 <Icon size={20} className="text-gold-600" />
               </div>

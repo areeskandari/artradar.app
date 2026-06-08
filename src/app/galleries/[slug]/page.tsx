@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Globe, Instagram, Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
+import { getGalleryBySlug } from '@/lib/data/queries'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import { EventCard } from '@/components/cards/EventCard'
 import { ArtistCard } from '@/components/cards/ArtistCard'
@@ -16,8 +17,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-  const { data: gallery } = await supabase.from('galleries').select('name, description, cover_image_url').eq('slug', slug).single()
+  const gallery = await getGalleryBySlug(slug)
 
   if (!gallery) return {}
 
@@ -41,15 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GalleryProfilePage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-
-  const { data: gallery } = await supabase
-    .from('galleries')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  const gallery = await getGalleryBySlug(slug)
 
   if (!gallery) notFound()
+
+  const supabase = await createPublicDataClient()
 
   const now = new Date().toISOString()
 
@@ -85,7 +81,7 @@ export default async function GalleryProfilePage({ params }: Props) {
         <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 to-transparent" />
 
         {gallery.logo_url && (
-          <div className="absolute bottom-6 left-6 w-20 h-20 rounded-lg bg-white shadow-lg overflow-hidden">
+          <div className="absolute bottom-6 left-6 w-20 h-20 rounded-lg bg-card shadow-lg overflow-hidden">
             <Image src={gallery.logo_url} alt={`${gallery.name} logo`} fill className="object-contain p-2" />
           </div>
         )}
@@ -98,7 +94,7 @@ export default async function GalleryProfilePage({ params }: Props) {
             {/* Header */}
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="font-serif text-4xl text-ink-900">{gallery.name}</h1>
+                <h1 className="type-detail-title">{gallery.name}</h1>
                 {gallery.is_featured && <Badge variant="gold">Featured</Badge>}
                 {gallery.subscription_active && <Badge variant="verified">Partner</Badge>}
               </div>
@@ -129,7 +125,7 @@ export default async function GalleryProfilePage({ params }: Props) {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="inline-block w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                  <h2 className="font-serif text-2xl text-ink-900">On Now</h2>
+                  <h2 className="type-h2">On Now</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {liveEvents.map((event) => (
@@ -142,7 +138,7 @@ export default async function GalleryProfilePage({ params }: Props) {
             {/* Upcoming Events */}
             {upcomingEvents.length > 0 && (
               <div>
-                <h2 className="font-serif text-2xl text-ink-900 mb-4">Upcoming Events</h2>
+                <h2 className="type-h2 mb-4">Upcoming Events</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {upcomingEvents.map((event) => (
                     <EventCard key={event.id} event={event} />
@@ -154,7 +150,7 @@ export default async function GalleryProfilePage({ params }: Props) {
             {/* Artists */}
             {artists.length > 0 && (
               <div>
-                <h2 className="font-serif text-2xl text-ink-900 mb-4">Artists</h2>
+                <h2 className="type-h2 mb-4">Artists</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {artists.map((artist) => (
                     <ArtistCard key={artist.id} artist={artist} variant="compact" />
@@ -166,7 +162,7 @@ export default async function GalleryProfilePage({ params }: Props) {
             {/* Submission Policy */}
             {gallery.submission_policy && (
               <div className="bg-gold-50 border border-gold-200 rounded-lg p-5">
-                <h3 className="font-serif text-xl text-ink-900 mb-2">Submission Policy</h3>
+                <h3 className="type-h3 mb-2">Submission Policy</h3>
                 <p className="text-ink-700 text-sm leading-relaxed">{gallery.submission_policy}</p>
               </div>
             )}
@@ -175,7 +171,7 @@ export default async function GalleryProfilePage({ params }: Props) {
           {/* Sidebar */}
           <div className="space-y-6 min-w-0">
             {/* Contact */}
-            <div className="bg-white border border-ink-200 rounded-lg p-5">
+            <div className="bg-card border border-ink-200 rounded-lg p-5">
               <h3 className="font-medium text-ink-900 mb-4">Contact & Links</h3>
               <div className="space-y-3 text-sm">
                 {gallery.address && (

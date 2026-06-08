@@ -32,7 +32,7 @@ export function ArtistCard({ artist, className, variant = 'default' }: ArtistCar
 
   return (
     <Link href={`/artists/${artist.slug}`} className={cn('group block', className)}>
-      <div className="bg-white rounded-lg overflow-hidden border border-ink-100 card-hover">
+      <div className="bg-card rounded-lg overflow-hidden border border-ink-100 card-hover">
         {/* Image */}
         <div className="relative h-56 bg-ink-100 overflow-hidden">
           <Image
@@ -55,7 +55,7 @@ export function ArtistCard({ artist, className, variant = 'default' }: ArtistCar
         {/* Content */}
         <div className="p-3">
           <div className="flex items-center gap-1.5">
-            <h3 className="font-medium text-ink-900 group-hover:text-gold-600 transition-colors line-clamp-1">
+            <h3 className="type-card-title group-hover:text-gold-600 transition-colors line-clamp-1">
               {artist.name}
             </h3>
             {artist.is_verified && (

@@ -87,9 +87,14 @@ CREATE TABLE news (
   cover_image_url text,
   related_gallery_id uuid REFERENCES galleries(id) ON DELETE SET NULL,
   related_artist_id uuid REFERENCES artists(id) ON DELETE SET NULL,
+  source_url text,
+  source_name text,
+  is_auto_imported boolean DEFAULT false,
   publish_date timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_news_source_url ON news (source_url) WHERE source_url IS NOT NULL;
 
 CREATE TABLE subscribers (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

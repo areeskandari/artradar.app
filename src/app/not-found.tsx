@@ -8,8 +8,8 @@ export default function NotFound() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-ink-100 border border-ink-200 mb-6">
           <FileQuestion className="w-8 h-8 text-ink-600" />
         </div>
-        <h1 className="font-serif text-2xl text-ink-900 mb-2">Page not found</h1>
-        <p className="text-ink-600 text-sm mb-6">
+        <h1 className="type-h2 mb-2">Page not found</h1>
+        <p className="type-small text-ink-600 mb-6">
           The page you’re looking for doesn’t exist or has been moved.
         </p>
         <Link

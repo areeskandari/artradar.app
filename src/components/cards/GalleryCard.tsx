@@ -21,7 +21,7 @@ export function GalleryCard({ gallery, className }: GalleryCardProps) {
 
   return (
     <Link href={`/galleries/${gallery.slug}`} className={cn('group block', className)}>
-      <div className="bg-white rounded-lg overflow-hidden border border-ink-100 card-hover h-full flex flex-col">
+      <div className="bg-card rounded-lg overflow-hidden border border-ink-100 card-hover h-full flex flex-col">
         {/* Cover Image */}
         <div className="relative h-48 overflow-hidden bg-ink-100">
           <Image
@@ -37,7 +37,7 @@ export function GalleryCard({ gallery, className }: GalleryCardProps) {
             </div>
           )}
           {gallery.logo_url && (
-            <div className="absolute bottom-3 left-3 w-12 h-12 rounded bg-white shadow-md overflow-hidden">
+            <div className="absolute bottom-3 left-3 w-12 h-12 rounded bg-card shadow-md overflow-hidden">
               <Image src={gallery.logo_url} alt={`${gallery.name} logo`} fill className="object-contain p-1" />
             </div>
           )}
@@ -46,7 +46,7 @@ export function GalleryCard({ gallery, className }: GalleryCardProps) {
         {/* Content */}
         <div className="p-4 flex-1 flex flex-col gap-2">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-serif text-lg text-ink-900 leading-tight group-hover:text-gold-600 transition-colors line-clamp-2">
+            <h3 className="type-card-title group-hover:text-gold-600 transition-colors line-clamp-2">
               {gallery.name}
             </h3>
             {gallery.type && (

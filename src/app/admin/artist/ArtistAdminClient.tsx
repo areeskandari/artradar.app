@@ -71,7 +71,7 @@ export function ArtistAdminClient({ artist }: Props) {
       )}
 
       {/* Profile Form */}
-      <div className="bg-white border border-ink-200 rounded-lg p-5 mb-6 space-y-4">
+      <div className="bg-card border border-ink-200 rounded-lg p-5 mb-6 space-y-4">
         <h2 className="font-medium text-ink-900">Edit Profile</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -122,7 +122,7 @@ export function ArtistAdminClient({ artist }: Props) {
       </div>
 
       {/* Pro Subscription */}
-      <div className="bg-white border border-ink-200 rounded-lg p-5">
+      <div className="bg-card border border-ink-200 rounded-lg p-5">
         <h2 className="font-serif text-xl text-ink-900 mb-2">Pro + Verified</h2>
         <p className="text-ink-600 text-sm mb-4">
           $5/month — Get a Verified badge on your profile, priority placement in artist listings, and access to Pro features.

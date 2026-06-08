@@ -56,7 +56,7 @@ export function FilterBar({ mode, paramPrefix = '', basePath }: FilterBarProps) 
   const getParam = (key: string) => searchParams.get(paramPrefix ? `${paramPrefix}${key}` : key) || ''
 
   return (
-    <div className="bg-white border border-ink-200 rounded-lg p-4">
+    <div className="bg-card border border-ink-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-ink-700">Filter</h3>
         {hasFilters && (

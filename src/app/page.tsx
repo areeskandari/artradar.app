@@ -1,8 +1,15 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { Suspense } from 'react'
 import { createPublicDataClient } from '@/lib/supabase/server'
+import {
+  fetchFeaturedGalleries,
+  fetchFilteredEvents,
+  fetchFilteredGalleries,
+  fetchThisWeekEvents,
+  getGalleryEventCounts,
+  getMapMarkers,
+} from '@/lib/data/queries'
+import { HomeHeroSection } from '@/components/sections/HomeHeroSection'
 import { EventCard } from '@/components/cards/EventCard'
 import { GalleryCard } from '@/components/cards/GalleryCard'
 import { ArtistCard } from '@/components/cards/ArtistCard'
@@ -10,8 +17,10 @@ import { NewsCard } from '@/components/cards/NewsCard'
 import { FilterBar } from '@/components/sections/FilterBar'
 import { SubscribeForm } from '@/components/sections/SubscribeForm'
 import { HomeMapSection } from '@/components/sections/HomeMapSection'
-import type { MapGallery, MapEvent } from '@/components/map/MapView'
-import type { Event, Gallery, NewsPost, Artist, EventType } from '@/types'
+import { SectionHeader } from '@/components/ui/Typography'
+import type { Gallery, NewsPost, Artist } from '@/types'
+
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "Your Guide to Dubai's Art Scene",
@@ -39,111 +48,75 @@ interface HomeSearchParams {
 async function getHomeData(params: HomeSearchParams) {
   const supabase = await createPublicDataClient()
   const now = new Date().toISOString()
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  // 1. This week in Dubai — events that started in the last 7 days
-  const { data: thisWeekRaw } = await supabase
-    .from('events')
-    .select('*, gallery:galleries(id, name, slug, area), event_artists(artist:artists(id, name, slug))')
-    .gte('start_date', sevenDaysAgo)
-    .lte('start_date', now)
-    .order('start_date', { ascending: false })
-    .limit(12)
-
-  const thisWeekInDubai = ((thisWeekRaw || []) as (Event & { event_artists?: { artist: { id: string; name: string; slug: string } }[] })[]).map((e) => {
-    const { event_artists, ...event } = e
-    const artists = (event_artists || []).map((ea) => ea.artist)
-    return { ...event, artists } as Event
-  })
-
-  // 2. Galleries — filter by search, area, type (Art Gallery, Museum, Library)
-  let galleryQuery = supabase
-    .from('galleries')
-    .select('*')
-    .order('name')
-  if (params.gallery_q) {
-    galleryQuery = galleryQuery.ilike('name', `%${params.gallery_q}%`)
-  }
-  if (params.gallery_area) {
-    galleryQuery = galleryQuery.eq('area', params.gallery_area)
-  }
-  if (params.gallery_type) {
-    galleryQuery = galleryQuery.eq('type', params.gallery_type)
-  }
-  const { data: galleriesData } = await galleryQuery.limit(24)
-
-  const { data: eventCounts } = await supabase
-    .from('events')
-    .select('gallery_id')
-    .gte('end_date', now)
-    .not('gallery_id', 'is', null)
-  const countMap: Record<string, number> = {}
-  eventCounts?.forEach((e) => {
-    if (e.gallery_id) countMap[e.gallery_id] = (countMap[e.gallery_id] || 0) + 1
-  })
-  const galleries = (galleriesData || []).map((g) => ({
-    ...g,
-    upcoming_events_count: countMap[g.id] || 0,
-  })) as Gallery[]
-
-  // 3. Events — filter by date (status), area, event type
-  let eventsQuery = supabase
-    .from('events')
-    .select('*, gallery:galleries(id, name, slug, area)')
-    .order('start_date')
-  const status = params.event_status || 'upcoming'
-  if (status === 'upcoming') {
-    eventsQuery = eventsQuery.gte('start_date', now)
-  } else if (status === 'active') {
-    eventsQuery = eventsQuery.lte('start_date', now).gte('end_date', now)
-  } else if (status === 'past') {
-    eventsQuery = eventsQuery.lt('end_date', now).order('end_date', { ascending: false })
-  }
-  if (params.event_type) {
-    eventsQuery = eventsQuery.eq('event_type', params.event_type as EventType)
-  }
-  if (params.event_q) {
-    eventsQuery = eventsQuery.ilike('title', `%${params.event_q}%`)
-  }
-  if (params.event_area) {
-    eventsQuery = eventsQuery.eq('gallery.area', params.event_area)
-  }
-  const { data: eventsData } = await eventsQuery.limit(24)
-  const events = (eventsData || []) as Event[]
-
-  // 4 & 5. Artists (for directory preview on home)
-  const { data: artistsData } = await supabase
-    .from('artists')
-    .select('*')
-    .order('name')
-    .limit(12)
-  const artists = (artistsData || []) as Artist[]
-
-  // 6. News & Updates
-  const { data: newsData } = await supabase
-    .from('news')
-    .select('*, related_gallery:galleries(id, name, slug), related_artist:artists(id, name, slug)')
-    .lte('publish_date', now)
-    .order('publish_date', { ascending: false })
-    .limit(6)
-  const news = (newsData || []) as NewsPost[]
-
-  // Map data: galleries and non-expired events with lat/lng
-  const [mapGalleriesRes, mapEventsRes] = await Promise.all([
-    supabase.from('galleries').select('id, name, slug, lat, lng, area').not('lat', 'is', null).not('lng', 'is', null),
-    supabase.from('events').select('id, title, slug, lat, lng, start_date, end_date, event_type').gte('end_date', now).not('lat', 'is', null).not('lng', 'is', null),
+  const [
+    thisWeekInDubai,
+    { data: featuredGalleriesData, error: featuredGalleriesError },
+    { data: galleriesData, error: galleriesError },
+    events,
+    artistsResult,
+    newsResult,
+    countMap,
+    { galleries: mapGalleries, events: mapEvents },
+  ] = await Promise.all([
+    fetchThisWeekEvents(),
+    fetchFeaturedGalleries(6),
+    fetchFilteredGalleries({
+      q: params.gallery_q,
+      area: params.gallery_area,
+      type: params.gallery_type,
+      limit: 24,
+    }),
+    fetchFilteredEvents({
+      q: params.event_q,
+      area: params.event_area,
+      event_type: params.event_type,
+      status: params.event_status,
+      limit: 24,
+    }),
+    supabase.from('artists').select('*').order('name').limit(12),
+    supabase
+      .from('news')
+      .select('*, related_gallery:galleries(id, name, slug), related_artist:artists(id, name, slug)')
+      .lte('publish_date', now)
+      .order('publish_date', { ascending: false })
+      .limit(6),
+    getGalleryEventCounts(),
+    getMapMarkers(),
   ])
-  const mapGalleries = (mapGalleriesRes.data || []) as MapGallery[]
-  const mapEvents = (mapEventsRes.data || []) as MapEvent[]
+
+  const { data: artistsData, error: artistsError } = artistsResult
+  const { data: newsData, error: newsError } = newsResult
+  const supabaseError =
+    featuredGalleriesError?.message ||
+    galleriesError?.message ||
+    artistsError?.message ||
+    newsError?.message ||
+    null
+
+  if (supabaseError) {
+    console.error('[Home] Supabase error:', supabaseError)
+  }
+
+  const withEventCounts = (rows: typeof galleriesData) =>
+    rows.map((g) => ({
+      ...g,
+      upcoming_events_count: countMap[g.id] || 0,
+    })) as Gallery[]
+
+  const featuredGalleries = withEventCounts(featuredGalleriesData)
+  const galleries = withEventCounts(galleriesData)
 
   return {
     thisWeekInDubai,
+    featuredGalleries,
     galleries,
     events,
-    artists,
-    news,
+    artists: (artistsData || []) as Artist[],
+    news: (newsData || []) as NewsPost[],
     mapGalleries,
     mapEvents,
+    supabaseError,
   }
 }
 
@@ -169,23 +142,14 @@ function Section({
   return (
     <section id={id} className={`py-12 sm:py-16 px-4 sm:px-6 w-full min-w-0 ${className}`}>
       <div className="max-w-7xl mx-auto w-full min-w-0">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div>
-            <h2 className={`font-serif text-3xl ${dark ? 'text-white' : 'text-ink-900'}`}>{title}</h2>
-            {subtitle && (
-              <p className={`text-sm mt-1 ${dark ? 'text-ink-300' : 'text-ink-500'}`}>{subtitle}</p>
-            )}
-            <div className="gold-divider w-24 mt-2" />
-          </div>
-          {linkHref && linkLabel && (
-            <Link
-              href={linkHref}
-              className={`text-sm flex items-center gap-1 shrink-0 ${dark ? 'text-gold-400 hover:text-gold-300' : 'text-gold-600 hover:text-gold-700'}`}
-            >
-              {linkLabel} <ArrowRight size={14} />
-            </Link>
-          )}
-        </div>
+        <SectionHeader
+          title={title}
+          subtitle={subtitle}
+          linkHref={linkHref}
+          linkLabel={linkLabel}
+          dark={dark}
+          className="mb-6"
+        />
         {children}
       </div>
     </section>
@@ -198,10 +162,49 @@ export default async function HomePage({
   searchParams: Promise<HomeSearchParams>
 }) {
   const params = await searchParams
-  const { thisWeekInDubai, galleries, events, artists, news, mapGalleries, mapEvents } = await getHomeData(params)
+  const {
+    thisWeekInDubai,
+    featuredGalleries,
+    galleries,
+    events,
+    artists,
+    news,
+    mapGalleries,
+    mapEvents,
+    supabaseError,
+  } = await getHomeData(params)
 
   return (
     <div className="animate-fade-in w-full min-w-0">
+      {process.env.NODE_ENV === 'development' && supabaseError && (
+        <div className="bg-destructive/10 border-b border-destructive/30 px-4 py-3 text-sm text-destructive">
+          <strong>Supabase connection failed:</strong> {supabaseError}. Check VPN/proxy (Clash fake-ip breaks
+          *.supabase.co), then restart <code className="text-xs">npm run dev</code>.
+        </div>
+      )}
+
+      <HomeHeroSection />
+
+      {/* Top Galleries */}
+      <Section
+        id="top-galleries"
+        title="Top Galleries"
+        subtitle="Featured spaces across Dubai&rsquo;s art scene"
+        linkHref="/galleries"
+        linkLabel="Full directory"
+        className="bg-card"
+      >
+        {featuredGalleries.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {featuredGalleries.map((gallery) => (
+              <GalleryCard key={gallery.id} gallery={gallery} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-ink-500 text-center py-10">No featured galleries yet. Check back soon.</p>
+        )}
+      </Section>
+
       {/* 1. This week in Dubai */}
       <Section
         id="this-week"
@@ -229,7 +232,7 @@ export default async function HomePage({
         subtitle="Directory · Search · Area · Type (Art Gallery, Museum, Library)"
         linkHref="/galleries"
         linkLabel="Full directory"
-        className="bg-white"
+        className="bg-card"
       >
         <div className="mb-6">
           <Suspense fallback={null}>
@@ -281,7 +284,7 @@ export default async function HomePage({
         subtitle="Discover artists in Dubai&rsquo;s art scene"
         linkHref="/artists"
         linkLabel="All artists"
-        className="bg-white"
+        className="bg-card"
       >
         {artists.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

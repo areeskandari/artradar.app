@@ -48,7 +48,7 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Select…
         disabled={disabled}
         onClick={() => setOpen(!open)}
         className={cn(
-          'w-full px-3 py-2 text-sm text-left bg-white border border-ink-200 rounded text-ink-900 min-h-[38px] flex items-center justify-between gap-2',
+          'w-full px-3 py-2 text-sm text-left bg-card border border-ink-200 rounded text-ink-900 min-h-[38px] flex items-center justify-between gap-2',
           'focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           open && 'ring-2 ring-gold-400 border-transparent'
@@ -60,7 +60,7 @@ export function MultiSelect({ options, value, onChange, placeholder = 'Select…
         <ChevronDown size={14} className={cn('shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded border border-ink-200 bg-white shadow-lg max-h-56 overflow-auto">
+        <div className="absolute z-50 mt-1 w-full rounded border border-ink-200 bg-card shadow-lg max-h-56 overflow-auto">
           {options.length === 0 ? (
             <div className="px-3 py-2 text-sm text-ink-500">No options</div>
           ) : (

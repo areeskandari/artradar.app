@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 /** GET: List auth users who don't have an admin_profiles row (super_admin only). */
 export async function GET() {
   try {

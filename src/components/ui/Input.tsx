@@ -7,7 +7,7 @@ export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTML
       <input
         ref={ref}
         className={cn(
-          'w-full px-3 py-2 text-sm bg-white border border-ink-200 rounded text-ink-900 placeholder:text-ink-400',
+          'w-full px-3 py-2 text-sm bg-card border border-ink-200 rounded text-ink-900 placeholder:text-ink-400',
           'focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           className
@@ -26,7 +26,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttrib
       <textarea
         ref={ref}
         className={cn(
-          'w-full px-3 py-2 text-sm bg-white border border-ink-200 rounded text-ink-900 placeholder:text-ink-400 resize-vertical',
+          'w-full px-3 py-2 text-sm bg-card border border-ink-200 rounded text-ink-900 placeholder:text-ink-400 resize-vertical',
           'focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           className
@@ -54,7 +54,7 @@ export function Select({ className, children, ...props }: React.SelectHTMLAttrib
   return (
     <select
       className={cn(
-        'w-full px-3 py-2 text-sm bg-white border border-ink-200 rounded text-ink-900',
+        'w-full px-3 py-2 text-sm bg-card border border-ink-200 rounded text-ink-900',
         'focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         className

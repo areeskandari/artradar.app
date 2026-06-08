@@ -57,13 +57,10 @@ export function ArtRadarChatbot({ fullPage }: ArtRadarChatbotProps) {
   }
 
   return (
-    <div className="bg-white border border-ink-200 rounded-xl p-5 sm:p-6">
+    <div className="bg-card border border-ink-200 rounded-xl p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={18} className="text-gold-600" />
         <p className="font-semibold text-ink-900">Ask Art Radar</p>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-ink-500 bg-ink-100 px-1.5 py-0.5 rounded">
-          beta
-        </span>
       </div>
 
       <div className="text-sm text-ink-600 mb-4">
@@ -114,7 +111,7 @@ export function ArtRadarChatbot({ fullPage }: ArtRadarChatbotProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about galleries, events, artists..."
-          className="bg-white border-ink-300 text-ink-900 placeholder:text-ink-400"
+          className="bg-card border-ink-300 text-ink-900 placeholder:text-ink-400"
         />
         <Button type="submit" variant="gold" size="md" disabled={!canSend}>
           <Send size={16} />

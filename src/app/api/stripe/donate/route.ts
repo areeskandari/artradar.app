@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
             product_data: {
               name: 'Donation to Art Radar',
               description: 'Support Dubai’s art scene — free guides, events, and gallery directory.',
-              images: process.env.NEXT_PUBLIC_SITE_URL ? [`${process.env.NEXT_PUBLIC_SITE_URL}/icon.svg`] : undefined,
+              images: process.env.NEXT_PUBLIC_SITE_URL ? [`${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`] : undefined,
             },
           },
           quantity: 1,

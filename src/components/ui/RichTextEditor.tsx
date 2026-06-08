@@ -31,7 +31,7 @@ function ToolbarButton({
       disabled={disabled}
       className={[
         'px-2 py-1 text-xs rounded border transition-colors',
-        disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5',
+        disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-card/5',
         active ? 'border-gold-300 bg-gold-50 text-gold-700' : 'border-ink-300 text-ink-700 hover:bg-ink-50',
       ].join(' ')}
     >
@@ -58,7 +58,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
       attributes: {
         class: [
           'ProseMirror',
-          'min-h-[140px] w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900',
+          'min-h-[140px] w-full rounded-lg border border-ink-200 bg-card px-3 py-2 text-sm text-ink-900',
           'focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent',
         ].join(' '),
       },

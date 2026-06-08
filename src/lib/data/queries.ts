@@ -1,0 +1,182 @@
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
+import { createPublicDataClient } from '@/lib/supabase/server'
+import type { MapGallery, MapEvent } from '@/components/map/MapView'
+import type { Event, EventType } from '@/types'
+
+const PUBLIC_REVALIDATE_SECONDS = 60
+
+export const getGalleryEventCounts = unstable_cache(
+  async () => {
+    const supabase = await createPublicDataClient()
+    const now = new Date().toISOString()
+    const { data: eventCounts } = await supabase
+      .from('events')
+      .select('gallery_id')
+      .gte('end_date', now)
+      .not('gallery_id', 'is', null)
+
+    const countMap: Record<string, number> = {}
+    eventCounts?.forEach((e) => {
+      if (e.gallery_id) countMap[e.gallery_id] = (countMap[e.gallery_id] || 0) + 1
+    })
+    return countMap
+  },
+  ['gallery-event-counts'],
+  { revalidate: PUBLIC_REVALIDATE_SECONDS, tags: ['events', 'galleries'] }
+)
+
+export const getMapMarkers = unstable_cache(
+  async () => {
+    const supabase = await createPublicDataClient()
+    const now = new Date().toISOString()
+
+    const [mapGalleriesRes, mapEventsRes] = await Promise.all([
+      supabase
+        .from('galleries')
+        .select('id, name, slug, lat, lng, area')
+        .not('lat', 'is', null)
+        .not('lng', 'is', null),
+      supabase
+        .from('events')
+        .select('id, title, slug, lat, lng, start_date, end_date, event_type')
+        .gte('end_date', now)
+        .not('lat', 'is', null)
+        .not('lng', 'is', null),
+    ])
+
+    return {
+      galleries: (mapGalleriesRes.data || []) as MapGallery[],
+      events: (mapEventsRes.data || []) as MapEvent[],
+    }
+  },
+  ['map-markers'],
+  { revalidate: PUBLIC_REVALIDATE_SECONDS, tags: ['map', 'galleries', 'events'] }
+)
+
+export const getGalleryBySlug = cache(async (slug: string) => {
+  const supabase = await createPublicDataClient()
+  const { data } = await supabase.from('galleries').select('*').eq('slug', slug).single()
+  return data
+})
+
+export const getEventBySlug = cache(async (slug: string) => {
+  const supabase = await createPublicDataClient()
+  const { data } = await supabase
+    .from('events')
+    .select('*, gallery:galleries(*)')
+    .eq('slug', slug)
+    .single()
+  return data
+})
+
+export const getArtistBySlug = cache(async (slug: string) => {
+  const supabase = await createPublicDataClient()
+  const { data } = await supabase.from('artists').select('*').eq('slug', slug).single()
+  return data
+})
+
+export const getNewsBySlug = cache(async (slug: string) => {
+  const supabase = await createPublicDataClient()
+  const { data } = await supabase
+    .from('news')
+    .select('*, related_gallery:galleries(*), related_artist:artists(*)')
+    .eq('slug', slug)
+    .single()
+  return data
+})
+
+export function normalizeEventRow(
+  e: Event & { event_artists?: { artist: { id: string; name: string; slug: string } }[] }
+): Event {
+  const { event_artists, ...event } = e
+  const artists = (event_artists || []).map((ea) => ea.artist)
+  return { ...event, artists } as Event
+}
+
+export async function fetchThisWeekEvents() {
+  const supabase = await createPublicDataClient()
+  const now = new Date().toISOString()
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data } = await supabase
+    .from('events')
+    .select('*, gallery:galleries(id, name, slug, area), event_artists(artist:artists(id, name, slug))')
+    .gte('start_date', sevenDaysAgo)
+    .lte('start_date', now)
+    .order('start_date', { ascending: false })
+    .limit(12)
+
+  return ((data || []) as Parameters<typeof normalizeEventRow>[0][]).map(normalizeEventRow)
+}
+
+export async function fetchFeaturedGalleries(limit = 6) {
+  const supabase = await createPublicDataClient()
+  const { data, error } = await supabase
+    .from('galleries')
+    .select('*')
+    .eq('is_featured', true)
+    .order('name')
+    .limit(limit)
+
+  return { data: data || [], error }
+}
+
+export async function fetchFilteredGalleries(params: {
+  q?: string
+  area?: string
+  type?: string
+  limit?: number
+  featuredSort?: boolean
+}) {
+  const supabase = await createPublicDataClient()
+
+  let query = supabase.from('galleries').select('*')
+  if (params.featuredSort) {
+    query = query
+      .order('is_featured', { ascending: false })
+      .order('subscription_active', { ascending: false })
+  }
+  query = query.order('name')
+
+  if (params.q) query = query.ilike('name', `%${params.q}%`)
+  if (params.area) query = query.eq('area', params.area)
+  if (params.type) query = query.eq('type', params.type)
+  if (params.limit) query = query.limit(params.limit)
+
+  const { data, error } = await query
+  return { data: data || [], error }
+}
+
+export async function fetchFilteredEvents(params: {
+  q?: string
+  area?: string
+  event_type?: string
+  status?: string
+  limit?: number
+}) {
+  const supabase = await createPublicDataClient()
+  const now = new Date().toISOString()
+
+  let query = supabase
+    .from('events')
+    .select('*, gallery:galleries(id, name, slug, area)')
+    .order('start_date')
+
+  const status = params.status || 'upcoming'
+  if (status === 'upcoming') {
+    query = query.gte('start_date', now)
+  } else if (status === 'active') {
+    query = query.lte('start_date', now).gte('end_date', now)
+  } else if (status === 'past') {
+    query = query.lt('end_date', now).order('end_date', { ascending: false })
+  }
+
+  if (params.event_type) query = query.eq('event_type', params.event_type as EventType)
+  if (params.q) query = query.ilike('title', `%${params.q}%`)
+  if (params.area) query = query.eq('gallery.area', params.area)
+  if (params.limit) query = query.limit(params.limit)
+
+  const { data } = await query
+  return (data || []) as Event[]
+}

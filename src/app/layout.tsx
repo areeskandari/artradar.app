@@ -1,13 +1,17 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import './globals.css'
+import dynamic from 'next/dynamic'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
-import { WhatsAppShortcut } from '@/components/whatsapp/WhatsAppShortcut'
 import Script from 'next/script'
-import { Ubuntu } from 'next/font/google'
 import { cn } from '@/lib/utils'
+import { notoSerif } from '@/lib/fonts'
 
-const ubuntu = Ubuntu({ weight: ['300', '400', '500', '700'], subsets: ['latin'], variable: '--font-ubuntu' })
+const WhatsAppShortcut = dynamic(
+  () => import('@/components/whatsapp/WhatsAppShortcut').then((m) => ({ default: m.WhatsAppShortcut })),
+  { ssr: false }
+)
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dubaiartradar.com'
 
@@ -26,7 +30,7 @@ export const metadata: Metadata = {
     title: "Art Radar — Your Guide to Dubai's Art Scene",
     description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. Your cultural compass for the UAE art world.",
     url: '/',
-    images: [{ url: '/icon.svg', width: 512, height: 512, alt: 'Art Radar' }],
+    images: [{ url: '/logo.png', width: 1024, height: 1024, alt: 'Art Radar' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -35,7 +39,10 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
-  icons: { icon: '/icon.svg' },
+  icons: {
+    icon: [{ url: '/logo.png', type: 'image/png' }],
+    apple: [{ url: '/logo.png', type: 'image/png' }],
+  },
   verification: {
     // Optional: add when you have them
     // google: 'google-site-verification-code',
@@ -49,11 +56,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={cn('light font-sans', ubuntu.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn('light font-sans', notoSerif.variable)} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden">
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
@@ -99,7 +105,9 @@ export default function RootLayout({
             }),
           }}
         />
-        <Navbar />
+        <Suspense fallback={<div className="sticky top-0 z-50 h-16 border-b border-ink-200 bg-cream/95" />}>
+          <Navbar />
+        </Suspense>
         <main className="flex-1 w-full min-w-0">
           {children}
         </main>

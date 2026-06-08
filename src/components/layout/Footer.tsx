@@ -12,31 +12,31 @@ export function Footer() {
             <Link href="/" className="inline-flex items-center gap-2 mb-3">
               <Logo variant="lockup" theme="dark" />
             </Link>
-            <p className="text-sm text-ink-400 leading-relaxed">
+            <p className="type-small text-ink-400">
               Your cultural compass for Dubai&rsquo;s art scene. Galleries, exhibitions, artists, and events — all in one place.
             </p>
           </div>
 
           {/* Explore */}
           <div>
-            <h4 className="text-gold-400 font-medium text-sm uppercase tracking-wider mb-3">Explore</h4>
+            <h4 className="type-eyebrow text-gold-400 mb-3">Explore</h4>
             <ul className="space-y-2 text-sm">
               {[
                 { href: '/galleries', label: 'Galleries' },
                 { href: '/events', label: 'Events' },
                 { href: '/artists', label: 'Artists' },
                 { href: '/news', label: 'News' },
-                { href: '/ask', label: 'Ask', beta: true },
+                { href: '/ask', label: 'Ask' },
                 { href: '/map', label: 'Map' },
                 { href: '/timeline', label: 'Timeline' },
                 { href: '/about', label: 'About' },
+                { href: '/for-galleries', label: 'For Galleries' },
                 { href: '/contact', label: 'Contact' },
                 { href: '/donate', label: 'Donate' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-ink-400 hover:text-gold-400 transition-colors">
                     {link.label}
-                    {'beta' in link && link.beta && <span className="ml-1 text-[9px] uppercase text-ink-500">beta</span>}
                   </Link>
                 </li>
               ))}
@@ -45,7 +45,7 @@ export function Footer() {
 
           {/* Areas */}
           <div>
-            <h4 className="text-gold-400 font-medium text-sm uppercase tracking-wider mb-3">Areas</h4>
+            <h4 className="type-eyebrow text-gold-400 mb-3">Areas</h4>
             <ul className="space-y-2 text-sm">
               {['DIFC', 'Alserkal Avenue', 'Downtown', 'JBR', 'Abu Dhabi'].map((area) => (
                 <li key={area}>
@@ -62,8 +62,8 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="text-gold-400 font-medium text-sm uppercase tracking-wider mb-3">Contact</h4>
-            <p className="text-sm text-ink-400 leading-relaxed">
+            <h4 className="type-eyebrow text-gold-400 mb-3">Contact</h4>
+            <p className="type-small text-ink-400">
               Have a question or want to list an event? Message us on WhatsApp.
             </p>
             <div className="mt-3">

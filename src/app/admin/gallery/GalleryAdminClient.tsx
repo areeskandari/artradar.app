@@ -282,7 +282,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
           </div>
 
           {showEventForm && (
-            <div className="bg-white border border-ink-200 rounded-lg p-5 mb-6 space-y-4">
+            <div className="bg-card border border-ink-200 rounded-lg p-5 mb-6 space-y-4">
               <h3 className="font-medium text-ink-900">{editingEvent ? 'Edit Event' : 'New Event'}</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -360,7 +360,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
           <div className="space-y-3">
             {events.length === 0 && <p className="text-ink-500 text-sm">No events yet. Create your first event above.</p>}
             {events.map((event) => (
-              <div key={event.id} className="flex items-center justify-between bg-white border border-ink-200 rounded-lg px-4 py-3">
+              <div key={event.id} className="flex items-center justify-between bg-card border border-ink-200 rounded-lg px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <EventTypeBadge type={event.event_type} size="sm" />
                   <div className="min-w-0">
@@ -401,7 +401,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
           ) : (
             <div className="space-y-2">
               {artists.map((artist) => (
-                <div key={artist.id} className="flex items-center justify-between bg-white border border-ink-200 rounded-lg px-4 py-3">
+                <div key={artist.id} className="flex items-center justify-between bg-card border border-ink-200 rounded-lg px-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-ink-900">{artist.name}</p>
                     <p className="text-xs text-ink-500">{artist.nationality} · {artist.city}</p>
@@ -449,7 +449,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
       {/* BILLING TAB */}
       {tab === 'billing' && (
         <div className="space-y-5">
-          <div className="bg-white border border-ink-200 rounded-lg p-5">
+          <div className="bg-card border border-ink-200 rounded-lg p-5">
             <h3 className="font-serif text-xl text-ink-900 mb-2">Gallery Partner Subscription</h3>
             <p className="text-ink-600 text-sm mb-4">
               $50/month — Priority listing in gallery directory, featured placement, and partner badge.
@@ -470,7 +470,7 @@ export function GalleryAdminClient({ gallery, events, subscribers, artists }: Pr
             )}
           </div>
 
-          <div className="bg-white border border-ink-200 rounded-lg p-5">
+          <div className="bg-card border border-ink-200 rounded-lg p-5">
             <h3 className="font-serif text-xl text-ink-900 mb-2">Feature an Exhibition</h3>
             <p className="text-ink-600 text-sm mb-2">
               $200 one-time — Promote any exhibition to the homepage and featured listings.

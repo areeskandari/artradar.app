@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PageHeader } from '@/components/ui/Typography'
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -16,18 +17,16 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl sm:text-4xl text-ink-900 mb-2">Contact us</h1>
-        <p className="text-ink-600">
-          For listings, partnerships, corrections, or general questions — reach out anytime.
-        </p>
-        <div className="gold-divider w-16 mt-3" />
-      </div>
+      <PageHeader
+        eyebrow="Get in touch"
+        title="Contact us"
+        description="For listings, partnerships, corrections, or general questions — reach out anytime."
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white border border-ink-200 rounded-xl p-6">
-          <h2 className="font-semibold text-ink-900 mb-1">WhatsApp</h2>
-          <p className="text-sm text-ink-600 mb-4">
+        <div className="bg-card border border-ink-200 rounded-xl p-6">
+          <h2 className="type-h4 mb-1">WhatsApp</h2>
+          <p className="type-small text-ink-600 mb-4">
             Fastest way to reach us. Ideal for quick corrections, last-minute updates, or sending a poster image.
           </p>
           <a
@@ -43,9 +42,9 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="bg-white border border-ink-200 rounded-xl p-6">
-          <h2 className="font-semibold text-ink-900 mb-1">Email</h2>
-          <p className="text-sm text-ink-600 mb-4">
+        <div className="bg-card border border-ink-200 rounded-xl p-6">
+          <h2 className="type-h4 mb-1">Email</h2>
+          <p className="type-small text-ink-600 mb-4">
             For detailed requests, press releases, and attachments.
           </p>
           <a
@@ -60,9 +59,9 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <div className="mt-4 bg-white border border-ink-200 rounded-xl p-6">
-        <h2 className="font-semibold text-ink-900 mb-2">What to include (mock checklist)</h2>
-        <div className="text-sm text-ink-700 leading-relaxed space-y-2">
+      <div className="mt-4 bg-card border border-ink-200 rounded-xl p-6">
+        <h2 className="type-h4 mb-2">What to include (mock checklist)</h2>
+        <div className="type-small text-ink-700 space-y-2">
           <p>
             - <span className="text-ink-900 font-medium">For events</span>: title, dates, venue, event type, ticket/free entry info, and 1 image.
           </p>

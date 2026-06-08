@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { createPublicDataClient } from '@/lib/supabase/server'
+import { getNewsBySlug } from '@/lib/data/queries'
 import { GalleryCard } from '@/components/cards/GalleryCard'
 import { ArtistCard } from '@/components/cards/ArtistCard'
 import { getPlaceholderImage, formatDate, stripHtml } from '@/lib/utils'
@@ -15,8 +15,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-  const { data: post } = await supabase.from('news').select('title, content, cover_image_url').eq('slug', slug).single()
+  const post = await getNewsBySlug(slug)
   if (!post) return {}
   const description = stripHtml(post.content)?.slice(0, 160) || `${post.title} — Art Radar`
   const imageUrl = post.cover_image_url || getPlaceholderImage('news', slug)
@@ -37,13 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewsPostPage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-
-  const { data: post } = await supabase
-    .from('news')
-    .select('*, related_gallery:galleries(*), related_artist:artists(*)')
-    .eq('slug', slug)
-    .single()
+  const post = await getNewsBySlug(slug)
 
   if (!post) notFound()
 
@@ -60,7 +53,7 @@ export default async function NewsPostPage({ params }: Props) {
           <p className="text-gold-400 text-sm uppercase tracking-widest mb-2">
             {formatDate(newsPost.publish_date)}
           </p>
-          <h1 className="font-serif text-3xl sm:text-4xl text-white leading-tight">
+          <h1 className="type-h1 text-white">
             {newsPost.title}
           </h1>
         </div>
@@ -70,6 +63,24 @@ export default async function NewsPostPage({ params }: Props) {
         <Link href="/news" className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-900 mb-8 transition-colors">
           <ArrowLeft size={14} /> Back to News
         </Link>
+
+        {newsPost.is_auto_imported && newsPost.source_name && (
+          <p className="text-sm text-ink-500 mb-6 pb-6 border-b border-ink-100">
+            Curated from{' '}
+            {newsPost.source_url ? (
+              <a
+                href={newsPost.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gold-700 hover:text-gold-900 underline underline-offset-2"
+              >
+                {newsPost.source_name}
+              </a>
+            ) : (
+              newsPost.source_name
+            )}
+          </p>
+        )}
 
         {newsPost.content && (
           <div
@@ -81,7 +92,7 @@ export default async function NewsPostPage({ params }: Props) {
         {/* Related */}
         {(newsPost.related_gallery || newsPost.related_artist) && (
           <div className="border-t border-ink-200 pt-8 mt-8">
-            <h2 className="font-serif text-2xl text-ink-900 mb-5">Related</h2>
+            <h2 className="type-h2 mb-5">Related</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {newsPost.related_gallery && (
                 <GalleryCard gallery={newsPost.related_gallery} />

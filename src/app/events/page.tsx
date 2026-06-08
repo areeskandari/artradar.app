@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { createPublicDataClient } from '@/lib/supabase/server'
+import { fetchFilteredEvents } from '@/lib/data/queries'
 import { EventCard } from '@/components/cards/EventCard'
 import { FilterBar } from '@/components/sections/FilterBar'
 import { EventCardSkeleton } from '@/components/ui/Skeleton'
-import type { Event, EventType } from '@/types'
+import { EmptyState, PageHeader } from '@/components/ui/Typography'
 
 export const metadata: Metadata = {
   title: 'Events',
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
+export const revalidate = 60
+
 interface Props {
   searchParams: Promise<{
     q?: string
@@ -30,51 +32,23 @@ interface Props {
 
 async function EventsGrid({ searchParams }: Props) {
   const params = await searchParams
-  const supabase = await createPublicDataClient()
-  const now = new Date().toISOString()
+  const events = await fetchFilteredEvents({
+    q: params.q,
+    area: params.area,
+    event_type: params.event_type,
+    status: params.status,
+    limit: 24,
+  })
 
-  let query = supabase
-    .from('events')
-    .select('*, gallery:galleries(id, name, slug, area)')
-    .order('start_date')
-
-  // Status filter
-  const status = params.status || 'upcoming'
-  if (status === 'upcoming') {
-    query = query.gte('start_date', now)
-  } else if (status === 'active') {
-    query = query.lte('start_date', now).gte('end_date', now)
-  } else if (status === 'past') {
-    query = query.lt('end_date', now).order('end_date', { ascending: false })
-  }
-
-  if (params.event_type) {
-    query = query.eq('event_type', params.event_type as EventType)
-  }
-
-  if (params.q) {
-    query = query.ilike('title', `%${params.q}%`)
-  }
-
-  if (params.area) {
-    // Filter via gallery area — need to join; use filter on joined field
-    query = query.eq('gallery.area', params.area)
-  }
-
-  const { data: events } = await query.limit(24)
-
-  if (!events || events.length === 0) {
+  if (events.length === 0) {
     return (
-      <div className="text-center py-20 text-ink-500">
-        <p className="font-serif text-2xl mb-2">No events found</p>
-        <p className="text-sm">Try adjusting your filters or check back soon.</p>
-      </div>
+      <EmptyState title="No events found" description="Try adjusting your filters or check back soon." />
     )
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {(events as Event[]).map((event) => (
+      {events.map((event) => (
         <EventCard key={event.id} event={event} />
       ))}
     </div>
@@ -84,11 +58,11 @@ async function EventsGrid({ searchParams }: Props) {
 export default async function EventsPage({ searchParams }: Props) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl text-ink-900 mb-2">Events</h1>
-        <p className="text-ink-500">Exhibitions, talks, workshops, and performances across Dubai.</p>
-        <div className="gold-divider w-32 mt-3" />
-      </div>
+      <PageHeader
+        eyebrow="Calendar"
+        title="Events"
+        description="Exhibitions, talks, workshops, and performances across Dubai."
+      />
 
       <div className="mb-6">
         <Suspense fallback={null}>

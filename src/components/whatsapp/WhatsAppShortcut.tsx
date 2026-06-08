@@ -50,7 +50,7 @@ export function WhatsAppShortcut() {
             className="absolute inset-0 bg-black/60"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute bottom-5 right-5 w-[92vw] max-w-sm bg-white border border-ink-200 rounded-xl shadow-2xl overflow-hidden">
+          <div className="absolute bottom-5 right-5 w-[92vw] max-w-sm bg-card border border-ink-200 rounded-xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-ink-200">
               <div>
                 <p className="text-sm font-medium text-ink-900">WhatsApp</p>

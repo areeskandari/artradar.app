@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Globe, Instagram, CheckCircle, Users, ExternalLink } from 'lucide-react'
+import { getArtistBySlug } from '@/lib/data/queries'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import { EventCard } from '@/components/cards/EventCard'
 import { GalleryCard } from '@/components/cards/GalleryCard'
@@ -15,8 +16,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-  const { data: artist } = await supabase.from('artists').select('name, bio, profile_image_url').eq('slug', slug).single()
+  const artist = await getArtistBySlug(slug)
   if (!artist) return {}
   const description = stripHtml(artist.bio)?.slice(0, 160) || `Artist profile: ${artist.name} — Art Radar`
   const imageUrl = artist.profile_image_url || getPlaceholderImage('artist', slug)
@@ -37,15 +37,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArtistPage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createPublicDataClient()
-
-  const { data: artist } = await supabase
-    .from('artists')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  const artist = await getArtistBySlug(slug)
 
   if (!artist) notFound()
+
+  const supabase = await createPublicDataClient()
 
   const [galleryLinks, eventLinks] = await Promise.all([
     supabase.from('gallery_artists').select('gallery:galleries(*)').eq('artist_id', artist.id),
@@ -75,7 +71,7 @@ export default async function ArtistPage({ params }: Props) {
 
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h1 className="font-serif text-2xl text-ink-900">{artist.name}</h1>
+                  <h1 className="type-h1">{artist.name}</h1>
                   {artist.is_verified && <CheckCircle size={18} className="text-blue-500" />}
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-3">
@@ -111,7 +107,7 @@ export default async function ArtistPage({ params }: Props) {
           <div className="lg:col-span-3 space-y-10">
             {artist.bio && (
               <div>
-                <h2 className="font-serif text-2xl text-ink-900 mb-3">About</h2>
+                <h2 className="type-h2 mb-3">About</h2>
                 <div className="gold-divider w-24 mb-4" />
                 <div
                   className="prose-art max-w-none"
@@ -122,7 +118,7 @@ export default async function ArtistPage({ params }: Props) {
 
             {galleries.length > 0 && (
               <div>
-                <h2 className="font-serif text-2xl text-ink-900 mb-4">Galleries</h2>
+                <h2 className="type-h2 mb-4">Galleries</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {galleries.map((gallery) => (
                     <GalleryCard key={gallery.id} gallery={gallery} />
@@ -133,7 +129,7 @@ export default async function ArtistPage({ params }: Props) {
 
             {events.length > 0 && (
               <div>
-                <h2 className="font-serif text-2xl text-ink-900 mb-4">Exhibitions & Events</h2>
+                <h2 className="type-h2 mb-4">Exhibitions & Events</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {events.map((event) => (
                     <EventCard key={event.id} event={event} />

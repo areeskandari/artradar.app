@@ -46,7 +46,7 @@ export function AdminLoginForm() {
           <p className="text-ink-500 text-sm mt-1">Art Radar</p>
         </div>
 
-        <div className="bg-white border border-ink-200 rounded-lg p-6">
+        <div className="bg-card border border-ink-200 rounded-lg p-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>

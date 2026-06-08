@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
+import { Linkedin } from 'lucide-react'
+import { PageHeader } from '@/components/ui/Typography'
 
 export const metadata: Metadata = {
   title: 'About',
@@ -14,32 +17,81 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
+const TEAM_MEMBERS = [
+  {
+    name: 'Elnaz Rajabian',
+    role: 'Co-Founder & CEO',
+    bio: 'Art curator and manager with 13+ years in exhibitions and gallery operations across Dubai and internationally.',
+    photo: '/team/elnaz-rajabian.png',
+    linkedin: 'https://www.linkedin.com/in/elnaz-rajabyan/',
+  },
+  {
+    name: 'Are Eskandari',
+    role: 'Co-Founder & Product',
+    bio: 'Builds the platform and shapes how Art Radar helps people discover Dubai\u2019s art scene.',
+    photo: '/team/are-eskandari.png',
+    linkedin: 'https://www.linkedin.com/in/areeskandari/',
+  },
+] as const
+
 export default function AboutPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl sm:text-4xl text-ink-900 mb-2">About Art Radar</h1>
-        <p className="text-ink-600">
-          Art Radar is a curated guide to Dubai&rsquo;s galleries, artists, exhibitions, and cultural events — built for people who want to
-          discover what&rsquo;s on, save time, and explore with confidence.
-        </p>
-        <div className="gold-divider w-16 mt-3" />
-      </div>
+      <PageHeader
+        eyebrow="Our story"
+        title="About Art Radar"
+        description="A curated guide to Dubai's galleries, artists, exhibitions, and cultural events — built for people who want to discover what's on, save time, and explore with confidence."
+      />
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="bg-white border border-ink-200 rounded-xl p-6 sm:p-8 space-y-4">
-          <h2 className="font-semibold text-ink-900 text-lg">Our mission</h2>
-          <p className="text-ink-700 leading-relaxed">
+        <div className="bg-card border border-ink-200 rounded-xl p-6 sm:p-8 space-y-4">
+          <h2 className="type-h4">Our mission</h2>
+          <p className="type-body">
             Make Dubai&rsquo;s art scene easier to navigate — a clean directory, a reliable calendar, and an editorial feed that highlights the most
             relevant openings and announcements.
           </p>
-          <p className="text-ink-700 leading-relaxed">
+          <p className="type-body">
             We focus on clarity: accurate dates, verified listings, and the right context (where, when, what type of event, and who is exhibiting).
           </p>
+
+          <div className="pt-6 border-t border-ink-200">
+            <h3 className="type-h4 mb-4">The team</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {TEAM_MEMBERS.map((member) => (
+                <div key={member.linkedin} className="flex items-start gap-4 border border-ink-200 rounded-xl p-4 bg-ink-50">
+                  <div className="relative w-14 h-14 rounded-full overflow-hidden bg-ink-100 shrink-0">
+                    <Image
+                      src={member.photo}
+                      alt={member.name}
+                      fill
+                      className="object-cover object-top"
+                      sizes="56px"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="type-h4">{member.name}</p>
+                      <a
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-ink-400 hover:text-gold-600 transition-colors"
+                        aria-label={`${member.name} on LinkedIn`}
+                      >
+                        <Linkedin size={16} />
+                      </a>
+                    </div>
+                    <p className="type-small text-gold-600 mb-1">{member.role}</p>
+                    <p className="type-small text-ink-600">{member.bio}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white border border-ink-200 rounded-xl p-6 sm:p-8">
-          <h2 className="font-semibold text-ink-900 text-lg mb-4">What you&rsquo;ll find on Art Radar</h2>
+        <div className="bg-card border border-ink-200 rounded-xl p-6 sm:p-8">
+          <h2 className="type-h4 mb-4">What you&rsquo;ll find on Art Radar</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               {
@@ -60,16 +112,16 @@ export default function AboutPage() {
               },
             ].map((c) => (
               <div key={c.title} className="border border-ink-200 rounded-xl p-4 bg-ink-50">
-                <p className="text-ink-900 font-medium mb-1">{c.title}</p>
-                <p className="text-sm text-ink-600 leading-relaxed">{c.desc}</p>
+                <p className="type-h4 mb-1">{c.title}</p>
+                <p className="type-small text-ink-600">{c.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white border border-ink-200 rounded-xl p-6 sm:p-8 space-y-4">
-          <h2 className="font-semibold text-ink-900 text-lg">How listings work (mock policy)</h2>
-          <div className="text-sm text-ink-700 space-y-3 leading-relaxed">
+        <div className="bg-card border border-ink-200 rounded-xl p-6 sm:p-8 space-y-4">
+          <h2 className="type-h4">How listings work (mock policy)</h2>
+          <div className="type-small text-ink-700 space-y-3">
             <p>
               - <span className="text-ink-900 font-medium">Galleries</span>: We prioritise accuracy (address, area, links, submission policy when
               available). Updates are welcome anytime.
@@ -86,13 +138,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="pt-2 flex flex-wrap gap-3">
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-500 text-white hover:bg-gold-600 transition-colors"
-            >
-              Browse events
-            </Link>
+          <div className="pt-2">
             <Link
               href="/contact"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-300 text-ink-700 hover:bg-ink-50 hover:border-ink-400 transition-colors"

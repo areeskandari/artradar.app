@@ -19,8 +19,8 @@ export function NewsCard({ post, className, variant = 'default' }: NewsCardProps
           <Image src={imageSrc} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="100vw" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
-            <p className="text-gold-400 text-sm mb-2">{formatDate(post.publish_date)}</p>
-            <h2 className="font-serif text-2xl text-white leading-tight group-hover:text-gold-300 transition-colors">
+            <p className="type-caption text-gold-400 mb-2 normal-case tracking-wide">{formatDate(post.publish_date)}</p>
+            <h2 className="type-h2 text-white group-hover:text-gold-300 transition-colors">
               {post.title}
             </h2>
             {(post.related_gallery || post.related_artist) && (
@@ -41,7 +41,7 @@ export function NewsCard({ post, className, variant = 'default' }: NewsCardProps
 
   return (
     <Link href={`/news/${post.slug}`} className={cn('group block', className)}>
-      <div className="bg-white rounded-lg overflow-hidden border border-ink-100 card-hover h-full flex flex-col">
+      <div className="bg-card rounded-lg overflow-hidden border border-ink-100 card-hover h-full flex flex-col">
         <div className="relative h-48 overflow-hidden bg-ink-100">
           <Image
             src={imageSrc}
@@ -52,10 +52,10 @@ export function NewsCard({ post, className, variant = 'default' }: NewsCardProps
           />
         </div>
         <div className="p-4 flex-1 flex flex-col gap-2">
-          <p className="text-xs text-gold-600 font-medium uppercase tracking-wider">
+          <p className="type-caption text-gold-600 normal-case tracking-wide">
             {formatDate(post.publish_date)}
           </p>
-          <h3 className="font-serif text-lg text-ink-900 leading-tight group-hover:text-gold-600 transition-colors line-clamp-3">
+          <h3 className="type-card-title group-hover:text-gold-600 transition-colors line-clamp-3">
             {post.title}
           </h3>
           {(post.related_gallery || post.related_artist) && (
