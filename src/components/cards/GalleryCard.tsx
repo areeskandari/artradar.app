@@ -36,6 +36,12 @@ export function GalleryCard({ gallery, className }: GalleryCardProps) {
               <Badge variant="gold">Featured</Badge>
             </div>
           )}
+          {gallery.area && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-ink-950/70 text-white text-xs backdrop-blur-sm">
+              <MapPin size={11} strokeWidth={1.5} />
+              <span>{gallery.area}</span>
+            </div>
+          )}
           {gallery.logo_url && (
             <div className="absolute bottom-3 left-3 w-12 h-12 rounded bg-card shadow-md overflow-hidden">
               <Image src={gallery.logo_url} alt={`${gallery.name} logo`} fill className="object-contain p-1" />
@@ -45,23 +51,23 @@ export function GalleryCard({ gallery, className }: GalleryCardProps) {
 
         {/* Content */}
         <div className="p-4 flex-1 flex flex-col gap-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="type-card-title group-hover:text-gold-600 transition-colors line-clamp-2">
-              {gallery.name}
-            </h3>
+          <h3 className="type-card-title group-hover:text-gold-600 transition-colors line-clamp-2">
+            {gallery.name}
+          </h3>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {gallery.area && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-ink-600 bg-ink-50 px-2 py-0.5 rounded border border-ink-200">
+                <MapPin size={10} strokeWidth={1.5} />
+                {gallery.area}
+              </span>
+            )}
             {gallery.type && (
-              <span className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-ink-500 bg-ink-50 px-2 py-0.5 rounded border border-ink-200">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-ink-500 bg-ink-50 px-2 py-0.5 rounded border border-ink-200">
                 {TYPE_LABELS[gallery.type]}
               </span>
             )}
           </div>
-
-          {gallery.area && (
-            <div className="flex items-center gap-1.5 text-sm text-ink-500">
-              <MapPin size={13} strokeWidth={1.5} />
-              <span>{gallery.area}</span>
-            </div>
-          )}
 
           {gallery.upcoming_events_count !== undefined && gallery.upcoming_events_count > 0 && (
             <div className="mt-auto pt-2 flex items-center gap-1.5 text-sm text-gold-600 font-medium">

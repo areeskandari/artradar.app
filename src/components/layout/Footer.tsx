@@ -29,10 +29,6 @@ export function Footer() {
                 { href: '/ask', label: 'Ask' },
                 { href: '/map', label: 'Map' },
                 { href: '/timeline', label: 'Timeline' },
-                { href: '/about', label: 'About' },
-                { href: '/for-galleries', label: 'For Galleries' },
-                { href: '/contact', label: 'Contact' },
-                { href: '/donate', label: 'Donate' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-ink-400 hover:text-gold-400 transition-colors">
@@ -63,14 +59,23 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h4 className="type-eyebrow text-gold-400 mb-3">Contact</h4>
-            <p className="type-small text-ink-400">
+            <p className="type-small text-ink-400 mb-3">
               Have a question or want to list an event? Message us on WhatsApp.
             </p>
-            <div className="mt-3">
-              <Link href="/contact" className="text-sm text-ink-400 hover:text-gold-400 transition-colors">
-                Contact page
-              </Link>
-            </div>
+            <ul className="space-y-2 text-sm">
+              {[
+                { href: '/about', label: 'About' },
+                { href: '/contact', label: 'Contact' },
+                { href: '/donate', label: 'Donate' },
+                { href: '/for-galleries', label: 'For Galleries' },
+              ].map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-ink-400 hover:text-gold-400 transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

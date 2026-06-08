@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
-import { Menu, X, Building2, Calendar, User, Newspaper, MapPin, ChevronDown } from 'lucide-react'
+import { Menu, X, Building2, Calendar, Brush, User, Newspaper, MapPin, ChevronDown } from 'lucide-react'
 import { cn, GALLERY_TYPES } from '@/lib/utils'
 import { Logo } from '@/components/brand/Logo'
 
 const NAV_LINKS = [
   { href: '/events', label: 'Events', icon: Calendar },
+  { href: '/events?event_type=workshop', label: 'Workshops', icon: Brush },
   { href: '/artists', label: 'Artists', icon: User },
   { href: '/news', label: 'News', icon: Newspaper },
   { href: '/map', label: 'Map', icon: MapPin },
@@ -30,6 +31,17 @@ export function Navbar() {
 
   const isGalleriesActive = pathname === '/galleries' || pathname.startsWith('/galleries/')
   const activeGalleryType = searchParams.get('type')
+  const activeEventType = searchParams.get('event_type')
+
+  const isNavLinkActive = (href: string) => {
+    if (href === '/events?event_type=workshop') {
+      return pathname === '/events' && activeEventType === 'workshop'
+    }
+    if (href === '/events') {
+      return pathname.startsWith('/events') && activeEventType !== 'workshop'
+    }
+    return pathname.startsWith(href)
+  }
 
   const navLinkClass = (active: boolean) =>
     cn(
@@ -96,7 +108,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={navLinkClass(pathname.startsWith(link.href))}
+                  className={navLinkClass(isNavLinkActive(link.href))}
                 >
                   <Icon size={16} className="shrink-0" />
                   {link.label}
@@ -182,7 +194,7 @@ export function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     'block px-3 py-2 text-sm font-medium rounded transition-colors inline-flex items-center gap-2',
-                    pathname.startsWith(link.href)
+                    isNavLinkActive(link.href)
                       ? 'text-gold-600 bg-gold-50'
                       : 'text-ink-700 hover:text-ink-900 hover:bg-ink-50'
                   )}
