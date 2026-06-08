@@ -51,9 +51,9 @@ function CategoryBox({
   return (
     <Link
       href={href}
-      className="group flex flex-col items-center justify-center gap-2.5 w-24 sm:w-28 py-4 px-3 rounded-lg border border-ink-200 bg-card text-ink-700 hover:border-gold-300 hover:bg-gold-50 hover:text-gold-700 transition-colors"
+      className="group flex flex-col items-center justify-center gap-2.5 w-24 sm:w-28 py-4 px-3 rounded-lg border border-white/40 bg-white/25 backdrop-blur-md text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.35)] hover:border-white/60 hover:bg-white/35 transition-colors"
     >
-      <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-ink-50 text-ink-600 group-hover:bg-gold-100 group-hover:text-gold-600 transition-colors">
+      <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/20 text-white group-hover:bg-white/30 transition-colors">
         <Icon {...iconProps} />
       </span>
       <span className="text-sm font-medium text-center">{label}</span>
@@ -73,9 +73,9 @@ function NavPill({
   return (
     <Link
       href={href}
-      className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full border border-ink-200 bg-card text-ink-700 hover:border-gold-300 hover:bg-gold-50 hover:text-gold-700 transition-colors"
+      className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full border border-white/40 bg-white/25 backdrop-blur-md text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.35)] hover:border-white/60 hover:bg-white/35 transition-colors"
     >
-      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-ink-50 text-ink-600 group-hover:bg-gold-100 group-hover:text-gold-600 transition-colors">
+      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white group-hover:bg-white/30 transition-colors">
         <Icon {...iconProps} />
       </span>
       <span className="text-sm font-medium">{label}</span>
@@ -85,20 +85,32 @@ function NavPill({
 
 export function HomeHeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-ink-200 bg-gradient-to-b from-gold-50/60 via-cream to-cream geometric-bg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <section className="relative overflow-hidden border-b border-ink-200">
+      <div className="absolute inset-0" aria-hidden>
+        {/* Served as-is from /public — no Next.js image optimization */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/hero-gallery.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-ink-950/80 via-ink-950/65 to-ink-950/55" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         <div className="text-center mb-8 sm:mb-10">
-          <p className="type-eyebrow text-gold-600 mb-3">Dubai art scene</p>
-          <h1 className="type-display mb-3">Your Guide to Dubai&rsquo;s Art Scene</h1>
-          <p className="type-lead-sm text-ink-600 max-w-2xl mx-auto">
+          <h1 className="font-serif text-[clamp(3rem,12vw,4.5rem)] leading-[1.08] tracking-[-0.025em] font-normal text-white sm:text-display mb-3">
+            Your Guide to MENA Art Scene
+          </h1>
+          <p className="type-lead-sm text-white/90 max-w-2xl mx-auto">
             Step into a world of art, where vibrant, exhibitions meet the warmth of a living environment. Discover, connect and be inspired.
           </p>
-          <div className="gold-divider w-24 mx-auto mt-5" />
+          <div className="w-24 h-px bg-white/50 mx-auto mt-5" />
         </div>
 
         <div className="space-y-5">
           <div>
-            <p className="type-eyebrow text-ink-500 text-center mb-3">Gallery categories</p>
+            <p className="type-eyebrow !text-white text-center mb-3">Gallery categories</p>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               {GALLERY_CATEGORIES.map((cat) => {
                 const Icon = GALLERY_CATEGORY_ICONS[cat.type]
@@ -108,7 +120,7 @@ export function HomeHeroSection() {
           </div>
 
           <div>
-            <p className="type-eyebrow text-ink-500 text-center mb-3">Explore</p>
+            <p className="type-eyebrow !text-white text-center mb-3">Explore</p>
             <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
               {TOP_ROUTES.map((route) => (
                 <NavPill key={route.href} href={route.href} label={route.label} icon={route.icon} />

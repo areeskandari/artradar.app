@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { Menu, X, Building2, Calendar, Brush, User, Newspaper, MapPin, ChevronDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Menu, X, Building2, Calendar, Brush, User, Newspaper, MapPin, ChevronDown, Info, Mail } from 'lucide-react'
 import { cn, GALLERY_TYPES } from '@/lib/utils'
 import { Logo } from '@/components/brand/Logo'
 
@@ -23,6 +23,11 @@ const GALLERY_NAV_LINKS = [
   })),
 ]
 
+const MOBILE_EXTRA_LINKS = [
+  { href: '/about', label: 'About Us', icon: Info },
+  { href: '/contact', label: 'Contact Us', icon: Mail },
+]
+
 export function Navbar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -32,6 +37,20 @@ export function Navbar() {
   const isGalleriesActive = pathname === '/galleries' || pathname.startsWith('/galleries/')
   const activeGalleryType = searchParams.get('type')
   const activeEventType = searchParams.get('event_type')
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [mobileOpen])
+
+  useEffect(() => {
+    setMobileOpen(false)
+    setMobileGalleriesOpen(false)
+  }, [pathname])
 
   const isNavLinkActive = (href: string) => {
     if (href === '/events?event_type=workshop') {
@@ -54,19 +73,37 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-cream/95 backdrop-blur-sm border-b border-ink-200 w-full min-w-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full min-w-0">
-        <div className="flex items-center justify-between h-16 min-w-0">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+        <div className="flex items-center justify-between h-16 min-w-0 md:grid md:grid-cols-[auto_1fr]">
+          {/* Mobile: logo | centered title | menu */}
+          <div className="grid grid-cols-3 items-center w-full md:hidden">
+            <Link href="/" className="justify-self-start">
+              <Logo variant="mark" />
+            </Link>
+            <Link
+              href="/"
+              className="justify-self-center font-serif text-h4 text-primary tracking-tight hover:text-primary/80 transition-colors"
+            >
+              Art Radar
+            </Link>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 -mr-2 text-ink-600 hover:text-ink-900 justify-self-end"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+
+          {/* Desktop: Logo */}
+          <Link href="/" className="hidden md:flex items-center gap-2 group">
             <Logo variant="mark" />
-            <div className="hidden sm:block">
-              <span className="font-serif text-h4 text-primary tracking-tight group-hover:text-primary/80 transition-colors">
-                Art Radar
-              </span>
-            </div>
+            <span className="font-serif text-h4 text-primary tracking-tight group-hover:text-primary/80 transition-colors">
+              Art Radar
+            </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 justify-self-end">
             <div className="relative group">
               <Link
                 href="/galleries"
@@ -116,31 +153,26 @@ export function Navbar() {
               )
             })}
           </div>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-2">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-ink-600 hover:text-ink-900"
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Mobile Nav */}
+      {/* Mobile Nav — fixed overlay above page content */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-ink-200 bg-cream">
-          <div className="px-4 py-3 space-y-1">
-            <div>
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 top-16 z-40 bg-ink-950/50 md:hidden"
+            aria-label="Close menu"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="fixed top-16 left-0 right-0 z-[41] md:hidden border-t border-ink-200 bg-cream shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto">
+          <ul className="divide-y divide-ink-200">
+            <li>
               <button
                 type="button"
                 onClick={() => setMobileGalleriesOpen(!mobileGalleriesOpen)}
                 className={cn(
-                  'w-full px-3 py-2 text-sm font-medium rounded transition-colors inline-flex items-center justify-between gap-2',
+                  'w-full px-4 py-3 text-sm font-medium transition-colors inline-flex items-center justify-between gap-2',
                   isGalleriesActive
                     ? 'text-gold-600 bg-gold-50'
                     : 'text-ink-700 hover:text-ink-900 hover:bg-ink-50'
@@ -156,56 +188,80 @@ export function Navbar() {
                 />
               </button>
               {mobileGalleriesOpen && (
-                <div className="mt-1 ml-4 space-y-1 border-l border-ink-200 pl-3">
+                <ul className="border-t border-ink-200 bg-ink-50/50">
                   {GALLERY_NAV_LINKS.map((link) => {
                     const typeParam = link.href.includes('type=') ? link.href.split('type=')[1] : null
                     const isActive = typeParam
                       ? pathname === '/galleries' && activeGalleryType === typeParam
                       : pathname === '/galleries' && !activeGalleryType
                     return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => {
-                          setMobileOpen(false)
-                          setMobileGalleriesOpen(false)
-                        }}
-                        className={cn(
-                          'block px-3 py-2 text-sm rounded transition-colors',
-                          isActive
-                            ? 'text-gold-600 bg-gold-50 font-medium'
-                            : 'text-ink-600 hover:text-ink-900 hover:bg-ink-50'
-                        )}
-                      >
-                        {link.label}
-                      </Link>
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          onClick={() => {
+                            setMobileOpen(false)
+                            setMobileGalleriesOpen(false)
+                          }}
+                          className={cn(
+                            'block px-4 py-2.5 pl-10 text-sm transition-colors',
+                            isActive
+                              ? 'text-gold-600 bg-gold-50 font-medium'
+                              : 'text-ink-600 hover:text-ink-900 hover:bg-ink-50'
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
                     )
                   })}
-                </div>
+                </ul>
               )}
-            </div>
+            </li>
 
             {NAV_LINKS.map((link) => {
               const Icon = link.icon
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    'block px-3 py-2 text-sm font-medium rounded transition-colors inline-flex items-center gap-2',
-                    isNavLinkActive(link.href)
-                      ? 'text-gold-600 bg-gold-50'
-                      : 'text-ink-700 hover:text-ink-900 hover:bg-ink-50'
-                  )}
-                >
-                  <Icon size={18} className="shrink-0" />
-                  {link.label}
-                </Link>
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'block px-4 py-3 text-sm font-medium transition-colors inline-flex items-center gap-2 w-full',
+                      isNavLinkActive(link.href)
+                        ? 'text-gold-600 bg-gold-50'
+                        : 'text-ink-700 hover:text-ink-900 hover:bg-ink-50'
+                    )}
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    {link.label}
+                  </Link>
+                </li>
               )
             })}
+
+            {MOBILE_EXTRA_LINKS.map((link) => {
+              const Icon = link.icon
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'block px-4 py-3 text-sm font-medium transition-colors inline-flex items-center gap-2 w-full',
+                      pathname === link.href
+                        ? 'text-gold-600 bg-gold-50'
+                        : 'text-ink-700 hover:text-ink-900 hover:bg-ink-50'
+                    )}
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    {link.label}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
           </div>
-        </div>
+        </>
       )}
     </nav>
   )
