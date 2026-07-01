@@ -13,10 +13,10 @@ export function CollaborationCategoryBadge({ category, size = 'md', className }:
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded border font-medium',
+        'inline-flex items-center rounded-chips border font-normal',
         config.bg,
         config.color,
-        size === 'sm' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-0.5',
+        size === 'sm' ? 'text-caption px-1.5 py-0.5' : 'text-caption px-2 py-0.5',
         className
       )}
     >

@@ -23,8 +23,10 @@ CREATE INDEX IF NOT EXISTS idx_collaborations_featured ON collaborations(is_feat
 
 ALTER TABLE collaborations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public can read collaborations" ON collaborations;
 CREATE POLICY "Public can read collaborations" ON collaborations FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Admins can manage collaborations" ON collaborations;
 CREATE POLICY "Admins can manage collaborations" ON collaborations FOR ALL
   USING (auth.uid() IN (SELECT id FROM admin_profiles WHERE role = 'super_admin'));
 
