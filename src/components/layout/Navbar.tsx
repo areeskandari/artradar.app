@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Menu, X, Building2, Calendar, Brush, User, Newspaper, MapPin, ChevronDown, Info, Mail } from 'lucide-react'
+import { Menu, X, Building2, Calendar, Brush, User, Newspaper, MapPin, ChevronDown, Info, Mail, Handshake } from 'lucide-react'
 import { cn, GALLERY_TYPES } from '@/lib/utils'
 import { Logo } from '@/components/brand/Logo'
 
@@ -23,6 +23,11 @@ const GALLERY_NAV_LINKS = [
   })),
 ]
 
+const COLLABORATION_NAV_LINKS = [
+  { href: '/collaboration/open-calls', label: 'Open Calls' },
+  { href: '/collaboration/competitions', label: 'Competitions' },
+]
+
 const MOBILE_EXTRA_LINKS = [
   { href: '/about', label: 'About Us', icon: Info },
   { href: '/contact', label: 'Contact Us', icon: Mail },
@@ -33,8 +38,10 @@ export function Navbar() {
   const searchParams = useSearchParams()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileGalleriesOpen, setMobileGalleriesOpen] = useState(false)
+  const [mobileCollaborationOpen, setMobileCollaborationOpen] = useState(false)
 
   const isGalleriesActive = pathname === '/galleries' || pathname.startsWith('/galleries/')
+  const isCollaborationActive = pathname.startsWith('/collaboration')
   const activeGalleryType = searchParams.get('type')
   const activeEventType = searchParams.get('event_type')
 
@@ -50,6 +57,7 @@ export function Navbar() {
   useEffect(() => {
     setMobileOpen(false)
     setMobileGalleriesOpen(false)
+    setMobileCollaborationOpen(false)
   }, [pathname])
 
   const isNavLinkActive = (href: string) => {
@@ -139,6 +147,38 @@ export function Navbar() {
               </div>
             </div>
 
+            <div className="relative group">
+              <Link
+                href="/collaboration/open-calls"
+                className={navLinkClass(isCollaborationActive)}
+              >
+                <Handshake size={16} className="shrink-0" />
+                Collaboration
+                <ChevronDown size={14} className="shrink-0 transition-transform group-hover:rotate-180" />
+              </Link>
+              <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all">
+                <div className="min-w-[10rem] rounded-lg border border-ink-200 bg-cream py-1 shadow-lg">
+                  {COLLABORATION_NAV_LINKS.map((link) => {
+                    const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          'block px-3 py-2 text-sm transition-colors',
+                          isActive
+                            ? 'text-gold-600 bg-gold-50 font-medium'
+                            : 'text-ink-600 hover:text-ink-900 hover:bg-ink-50'
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
             {NAV_LINKS.map((link) => {
               const Icon = link.icon
               return (
@@ -201,6 +241,54 @@ export function Navbar() {
                           onClick={() => {
                             setMobileOpen(false)
                             setMobileGalleriesOpen(false)
+                          }}
+                          className={cn(
+                            'block px-4 py-2.5 pl-10 text-sm transition-colors',
+                            isActive
+                              ? 'text-gold-600 bg-gold-50 font-medium'
+                              : 'text-ink-600 hover:text-ink-900 hover:bg-ink-50'
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </li>
+
+            <li>
+              <button
+                type="button"
+                onClick={() => setMobileCollaborationOpen(!mobileCollaborationOpen)}
+                className={cn(
+                  'w-full px-4 py-3 text-sm font-medium transition-colors inline-flex items-center justify-between gap-2',
+                  isCollaborationActive
+                    ? 'text-gold-600 bg-gold-50'
+                    : 'text-ink-700 hover:text-ink-900 hover:bg-ink-50'
+                )}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Handshake size={18} className="shrink-0" />
+                  Collaboration
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={cn('shrink-0 transition-transform', mobileCollaborationOpen && 'rotate-180')}
+                />
+              </button>
+              {mobileCollaborationOpen && (
+                <ul className="border-t border-ink-200 bg-ink-50/50">
+                  {COLLABORATION_NAV_LINKS.map((link) => {
+                    const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          onClick={() => {
+                            setMobileOpen(false)
+                            setMobileCollaborationOpen(false)
                           }}
                           className={cn(
                             'block px-4 py-2.5 pl-10 text-sm transition-colors',

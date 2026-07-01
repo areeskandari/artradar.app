@@ -2,7 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import type { MapGallery, MapEvent } from '@/components/map/MapView'
-import type { Event, EventType, Gallery } from '@/types'
+import type { Event, EventType, Gallery, Collaboration, CollaborationCategory } from '@/types'
 
 const PUBLIC_REVALIDATE_SECONDS = 60
 
@@ -86,6 +86,44 @@ export const getNewsBySlug = cache(async (slug: string) => {
   return data
 })
 
+function normalizeCollaborationRow(row: Collaboration & { photos?: unknown }): Collaboration {
+  const photos = Array.isArray(row.photos) ? row.photos.filter((p): p is string => typeof p === 'string') : []
+  return { ...row, photos }
+}
+
+export const getCollaborationBySlug = cache(async (slug: string) => {
+  const supabase = await createPublicDataClient()
+  const { data } = await supabase.from('collaborations').select('*').eq('slug', slug).single()
+  return data ? normalizeCollaborationRow(data as Collaboration) : null
+})
+
+export async function fetchFilteredCollaborations(params: {
+  category?: CollaborationCategory
+  q?: string
+  status?: 'open' | 'closed' | 'all'
+  limit?: number
+}) {
+  const supabase = await createPublicDataClient()
+  const now = new Date().toISOString()
+
+  let query = supabase.from('collaborations').select('*').order('deadline', { ascending: true, nullsFirst: false })
+
+  if (params.category) query = query.eq('category', params.category)
+  if (params.q) query = query.ilike('title', `%${params.q}%`)
+
+  const status = params.status || 'open'
+  if (status === 'open') {
+    query = query.or(`deadline.is.null,deadline.gte.${now}`)
+  } else if (status === 'closed') {
+    query = query.lt('deadline', now)
+  }
+
+  if (params.limit) query = query.limit(params.limit)
+
+  const { data } = await query
+  return ((data || []) as Collaboration[]).map(normalizeCollaborationRow)
+}
+
 export function normalizeEventRow(
   e: Event & { event_artists?: { artist: { id: string; name: string; slug: string } }[] }
 ): Event {
@@ -108,6 +146,23 @@ export async function fetchThisWeekEvents() {
     .limit(12)
 
   return ((data || []) as Parameters<typeof normalizeEventRow>[0][]).map(normalizeEventRow)
+}
+
+export async function fetchThisWeekCollaborations() {
+  const supabase = await createPublicDataClient()
+  const now = new Date().toISOString()
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data } = await supabase
+    .from('collaborations')
+    .select('*')
+    .not('deadline', 'is', null)
+    .gte('deadline', now)
+    .lte('deadline', sevenDaysFromNow)
+    .order('deadline', { ascending: true })
+    .limit(12)
+
+  return ((data || []) as Collaboration[]).map(normalizeCollaborationRow)
 }
 
 export async function fetchFeaturedGalleries(limit = 6) {

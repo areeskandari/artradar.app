@@ -6,11 +6,13 @@ import {
   fetchFilteredEvents,
   fetchFilteredGalleries,
   fetchThisWeekEvents,
+  fetchThisWeekCollaborations,
   getGalleryEventCounts,
   getMapMarkers,
 } from '@/lib/data/queries'
 import { HomeHeroSection } from '@/components/sections/HomeHeroSection'
 import { EventCard } from '@/components/cards/EventCard'
+import { CollaborationCard } from '@/components/cards/CollaborationCard'
 import { GalleryCard } from '@/components/cards/GalleryCard'
 import { ArtistCard } from '@/components/cards/ArtistCard'
 import { NewsCard } from '@/components/cards/NewsCard'
@@ -51,6 +53,7 @@ async function getHomeData(params: HomeSearchParams) {
 
   const [
     thisWeekInDubai,
+    thisWeekCollaborations,
     { data: featuredGalleriesData, error: featuredGalleriesError },
     { data: galleriesData, error: galleriesError },
     events,
@@ -60,6 +63,7 @@ async function getHomeData(params: HomeSearchParams) {
     { galleries: mapGalleries, events: mapEvents },
   ] = await Promise.all([
     fetchThisWeekEvents(),
+    fetchThisWeekCollaborations(),
     fetchFeaturedGalleries(6),
     fetchFilteredGalleries({
       q: params.gallery_q,
@@ -109,6 +113,7 @@ async function getHomeData(params: HomeSearchParams) {
 
   return {
     thisWeekInDubai,
+    thisWeekCollaborations,
     featuredGalleries,
     galleries,
     events,
@@ -164,6 +169,7 @@ export default async function HomePage({
   const params = await searchParams
   const {
     thisWeekInDubai,
+    thisWeekCollaborations,
     featuredGalleries,
     galleries,
     events,
@@ -209,19 +215,22 @@ export default async function HomePage({
       <Section
         id="this-week"
         title="This week in Dubai"
-        subtitle="Events that started in the last 7 days"
+        subtitle="Events that started in the last 7 days, plus open calls and competitions closing soon"
         linkHref="/events"
         linkLabel="Full calendar"
         className="bg-ink-50"
       >
-        {thisWeekInDubai.length > 0 ? (
+        {thisWeekInDubai.length > 0 || thisWeekCollaborations.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {thisWeekInDubai.map((event) => (
               <EventCard key={event.id} event={event} showArtists showButton />
             ))}
+            {thisWeekCollaborations.map((item) => (
+              <CollaborationCard key={item.id} collaboration={item} />
+            ))}
           </div>
         ) : (
-          <p className="text-ink-500 text-center py-10">No events started in the last 7 days. Check back soon.</p>
+          <p className="text-ink-500 text-center py-10">Nothing new this week yet. Check back soon.</p>
         )}
       </Section>
 

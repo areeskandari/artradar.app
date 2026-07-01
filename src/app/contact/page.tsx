@@ -31,11 +31,11 @@ export default function ContactPage() {
           </p>
           <a
             className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#25D366] text-white hover:opacity-90 transition-opacity w-full sm:w-auto"
-            href="https://wa.me/971585413180?text=Hi%20Dubai%20Art%20Radar%2C%20I%27d%20like%20to%20share%20a%20listing%20update."
+            href="https://wa.me/971558401009?text=Hi%20Dubai%20Art%20Radar%2C%20I%27d%20like%20to%20share%20a%20listing%20update."
             target="_blank"
             rel="noreferrer"
           >
-            Message +971585413180
+            Message +971558401009
           </a>
           <p className="mt-3 text-xs text-ink-500">
             Tip: You can also use the WhatsApp button on every page (bottom-right).

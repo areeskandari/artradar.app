@@ -2,31 +2,33 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings } from 'lucide-react'
+import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings, Handshake } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea, Label, Select } from '@/components/ui/Input'
 import { MultiSelect } from '@/components/ui/MultiSelect'
 import { Badge } from '@/components/ui/Badge'
 import { EventTypeBadge } from '@/components/ui/EventTypeBadge'
+import { CollaborationCategoryBadge } from '@/components/ui/CollaborationCategoryBadge'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
-import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES } from '@/lib/utils'
-import type { Gallery, Artist, Event, NewsPost, Subscriber } from '@/types'
+import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, COLLABORATION_CATEGORIES } from '@/lib/utils'
+import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration } from '@/types'
 
-type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'subscribers'
+type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'collaborations' | 'subscribers'
 
 interface Props {
   galleries: Gallery[]
   artists: Artist[]
   events: Event[]
   news: NewsPost[]
+  collaborations: Collaboration[]
   subscribers: Subscriber[]
   galleryArtists: Record<string, string[]>
   eventArtists: Record<string, string[]>
   galleryAreas: { id: string; value: string; label: string; sort_order: number }[]
 }
 
-export function SuperAdminClient({ galleries, artists, events, news, subscribers, galleryArtists, eventArtists, galleryAreas }: Props) {
+export function SuperAdminClient({ galleries, artists, events, news, collaborations, subscribers, galleryArtists, eventArtists, galleryAreas }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [message, setMessage] = useState('')
@@ -38,6 +40,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const [editingArtistId, setEditingArtistId] = useState<string | null>(null)
   const [editingEventId, setEditingEventId] = useState<string | null>(null)
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null)
+  const [editingCollaborationId, setEditingCollaborationId] = useState<string | null>(null)
 
   const [editGalleryForm, setEditGalleryForm] = useState({
     name: '', description: '', address: '', area: '' as string, type: 'gallery' as string,
@@ -59,6 +62,10 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
 
   const [editNewsForm, setEditNewsForm] = useState({
     title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '',
+  })
+
+  const [editCollaborationForm, setEditCollaborationForm] = useState({
+    title: '', description: '', category: 'open_call' as string, external_link: '', deadline: '', contact_info: '', is_featured: false,
   })
 
   // Relation multi-select state (when editing an entity)
@@ -84,6 +91,11 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   // News form
   const [showNewsForm, setShowNewsForm] = useState(false)
   const [newsForm, setNewsForm] = useState({ title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '' })
+
+  const [showCollaborationForm, setShowCollaborationForm] = useState(false)
+  const [collaborationForm, setCollaborationForm] = useState({
+    title: '', description: '', category: 'open_call' as string, external_link: '', deadline: '', contact_info: '', is_featured: false,
+  })
 
   // Gallery form
   const [showGalleryForm, setShowGalleryForm] = useState(false)
@@ -112,10 +124,10 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
   const supabase = createClient()
 
   async function uploadImageAndUpdate(opts: {
-    entityType: 'gallery' | 'event' | 'artist' | 'news'
+    entityType: 'gallery' | 'event' | 'artist' | 'news' | 'collaboration'
     entityId: string
     file: File
-    table: 'galleries' | 'events' | 'artists' | 'news'
+    table: 'galleries' | 'events' | 'artists' | 'news' | 'collaborations'
     field: 'cover_image_url' | 'image_url' | 'profile_image_url'
   }) {
     const { entityType, entityId, file, table, field } = opts
@@ -469,6 +481,101 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     router.refresh()
   }
 
+  async function uploadCollaborationPhoto(collaborationId: string, file: File) {
+    const key = `collaboration-photo:${collaborationId}`
+    setUploadingKey(key)
+    setMessage('')
+    try {
+      const form = new FormData()
+      form.append('entityType', 'collaboration')
+      form.append('entityId', collaborationId)
+      form.append('file', file)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Upload failed')
+      const publicUrl = data.publicUrl as string | undefined
+      if (!publicUrl) throw new Error('Upload succeeded but URL missing')
+
+      const item = collaborations.find((c) => c.id === collaborationId)
+      const photos = [...(item?.photos || []), publicUrl]
+      const { error } = await supabase.from('collaborations').update({ photos }).eq('id', collaborationId)
+      if (error) throw new Error(error.message)
+      setMessage('Photo added!')
+      router.refresh()
+    } catch (e) {
+      setMessage(`Error: ${e instanceof Error ? e.message : 'Upload failed'}`)
+    } finally {
+      setUploadingKey(null)
+    }
+  }
+
+  async function removeCollaborationPhoto(collaborationId: string, photoUrl: string) {
+    const item = collaborations.find((c) => c.id === collaborationId)
+    if (!item) return
+    const photos = item.photos.filter((p) => p !== photoUrl)
+    const { error } = await supabase.from('collaborations').update({ photos }).eq('id', collaborationId)
+    if (!error) router.refresh()
+  }
+
+  async function saveCollaboration() {
+    if (!collaborationForm.title.trim()) {
+      setMessage('Title is required')
+      return
+    }
+    setSaving(true)
+    setMessage('')
+    const { error } = await supabase.from('collaborations').insert({
+      title: collaborationForm.title,
+      slug: slugify(collaborationForm.title),
+      description: collaborationForm.description || null,
+      category: collaborationForm.category,
+      external_link: collaborationForm.external_link || null,
+      deadline: collaborationForm.deadline || null,
+      contact_info: collaborationForm.contact_info || null,
+      is_featured: collaborationForm.is_featured,
+      photos: [],
+    })
+    setSaving(false)
+    setMessage(error ? `Error: ${error.message}` : 'Collaboration created!')
+    if (!error) {
+      setShowCollaborationForm(false)
+      setCollaborationForm({ title: '', description: '', category: 'open_call', external_link: '', deadline: '', contact_info: '', is_featured: false })
+      router.refresh()
+    }
+  }
+
+  async function updateCollaboration(id: string) {
+    setSaving(true)
+    setMessage('')
+    const { error } = await supabase.from('collaborations').update({
+      title: editCollaborationForm.title,
+      slug: slugify(editCollaborationForm.title),
+      description: editCollaborationForm.description || null,
+      category: editCollaborationForm.category,
+      external_link: editCollaborationForm.external_link || null,
+      deadline: editCollaborationForm.deadline || null,
+      contact_info: editCollaborationForm.contact_info || null,
+      is_featured: editCollaborationForm.is_featured,
+    }).eq('id', id)
+    setSaving(false)
+    setMessage(error ? `Error: ${error.message}` : 'Collaboration updated!')
+    if (!error) {
+      setEditingCollaborationId(null)
+      router.refresh()
+    }
+  }
+
+  async function deleteCollaboration(id: string) {
+    if (!confirm('Delete this collaboration listing?')) return
+    await supabase.from('collaborations').delete().eq('id', id)
+    router.refresh()
+  }
+
+  async function toggleFeaturedCollaboration(id: string, current: boolean) {
+    const { error } = await supabase.from('collaborations').update({ is_featured: !current }).eq('id', id)
+    if (!error) router.refresh()
+  }
+
   async function loadPendingUsers() {
     setPendingLoading(true)
     try {
@@ -560,6 +667,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
     { id: 'artists', label: 'Artists', icon: <User size={14} />, count: artists.length },
     { id: 'events', label: 'Events', icon: <Calendar size={14} />, count: events.length },
     { id: 'news', label: 'News', icon: <Newspaper size={14} />, count: news.length },
+    { id: 'collaborations', label: 'Collaboration', icon: <Handshake size={14} />, count: collaborations.length },
     { id: 'subscribers', label: 'Subscribers', icon: <Users size={14} />, count: subscribers.length },
   ]
 
@@ -605,6 +713,7 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
             { label: 'Artists', count: artists.length, sub: `${artists.filter(a => a.is_verified).length} verified`, icon: User },
             { label: 'Events', count: events.length, sub: `${events.filter(e => e.is_featured).length} featured`, icon: Calendar },
             { label: 'News Posts', count: news.length, sub: 'published', icon: Newspaper },
+            { label: 'Collaborations', count: collaborations.length, sub: `${collaborations.filter(c => c.category === 'open_call').length} open calls`, icon: Handshake },
             { label: 'Subscribers', count: subscribers.length, sub: 'total', icon: Users },
             { label: 'Featured Galleries', count: galleries.filter(g => g.is_featured).length, sub: 'on homepage', icon: Star },
           ].map(({ label, count, sub, icon: Icon }) => (
@@ -1688,6 +1797,220 @@ export function SuperAdminClient({ galleries, artists, events, news, subscribers
                         {saving ? 'Saving...' : 'Save changes'}
                       </Button>
                       <Button onClick={() => setEditingNewsId(null)} variant="ghost" size="sm">Cancel</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* COLLABORATIONS */}
+      {tab === 'collaborations' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-serif text-xl text-ink-900">Collaboration</h2>
+            <Button onClick={() => setShowCollaborationForm(!showCollaborationForm)} variant="gold" size="sm">
+              <Plus size={14} /> New Listing
+            </Button>
+          </div>
+
+          {showCollaborationForm && (
+            <div className="bg-card border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
+              <h3 className="font-medium text-ink-900">Add Open Call / Competition</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <Label>Title *</Label>
+                  <Input value={collaborationForm.title} onChange={(e) => setCollaborationForm({ ...collaborationForm, title: e.target.value })} placeholder="Listing title" />
+                </div>
+                <div>
+                  <Label>Category *</Label>
+                  <Select value={collaborationForm.category} onChange={(e) => setCollaborationForm({ ...collaborationForm, category: e.target.value })}>
+                    {COLLABORATION_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Deadline</Label>
+                  <Input type="datetime-local" value={collaborationForm.deadline} onChange={(e) => setCollaborationForm({ ...collaborationForm, deadline: e.target.value })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Description</Label>
+                  <RichTextEditor
+                    value={collaborationForm.description}
+                    onChange={(html) => setCollaborationForm({ ...collaborationForm, description: html })}
+                    placeholder="Full description…"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Application / submission link</Label>
+                  <Input value={collaborationForm.external_link} onChange={(e) => setCollaborationForm({ ...collaborationForm, external_link: e.target.value })} placeholder="https://…" />
+                  <p className="text-xs text-ink-500 mt-1">UTM tracking is added automatically on the public page.</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Contact info</Label>
+                  <Textarea value={collaborationForm.contact_info} onChange={(e) => setCollaborationForm({ ...collaborationForm, contact_info: e.target.value })} placeholder="Email, phone, or contact instructions" rows={3} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={collaborationForm.is_featured} onChange={(e) => setCollaborationForm({ ...collaborationForm, is_featured: e.target.checked })} className="rounded border-ink-300" />
+                    Featured
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={saveCollaboration} disabled={saving} variant="primary" size="sm">{saving ? 'Saving...' : 'Create Listing'}</Button>
+                <Button onClick={() => setShowCollaborationForm(false)} variant="ghost" size="sm">Cancel</Button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {collaborations.map((item) => (
+              <div key={item.id} className="bg-card border border-ink-200 rounded-lg">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <CollaborationCategoryBadge category={item.category} size="sm" />
+                    <div className="min-w-0">
+                      <button
+                        type="button"
+                        className="text-left text-sm font-medium text-ink-900 truncate hover:underline"
+                        onClick={() => {
+                          if (editingCollaborationId === item.id) {
+                            setEditingCollaborationId(null)
+                            return
+                          }
+                          setEditingCollaborationId(item.id)
+                          setEditCollaborationForm({
+                            title: item.title || '',
+                            description: item.description || '',
+                            category: item.category,
+                            external_link: item.external_link || '',
+                            deadline: item.deadline ? item.deadline.slice(0, 16) : '',
+                            contact_info: item.contact_info || '',
+                            is_featured: !!item.is_featured,
+                          })
+                        }}
+                      >
+                        {item.title}
+                      </button>
+                      <p className="text-xs text-ink-500">{item.deadline ? formatDate(item.deadline) : 'No deadline'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <label className="text-xs px-2 py-1 rounded border border-ink-200 bg-ink-50 text-ink-600 hover:border-ink-300 cursor-pointer">
+                      {uploadingKey === `collaboration:${item.id}` ? 'Uploading…' : 'Cover'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingKey !== null}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          void uploadImageAndUpdate({
+                            entityType: 'collaboration',
+                            entityId: item.id,
+                            file: f,
+                            table: 'collaborations',
+                            field: 'cover_image_url',
+                          })
+                          e.currentTarget.value = ''
+                        }}
+                      />
+                    </label>
+                    <label className="text-xs px-2 py-1 rounded border border-ink-200 bg-ink-50 text-ink-600 hover:border-ink-300 cursor-pointer">
+                      {uploadingKey === `collaboration-photo:${item.id}` ? 'Uploading…' : 'Add photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingKey !== null}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          void uploadCollaborationPhoto(item.id, f)
+                          e.currentTarget.value = ''
+                        }}
+                      />
+                    </label>
+                    <button
+                      onClick={() => toggleFeaturedCollaboration(item.id, item.is_featured)}
+                      className={`text-xs px-2 py-1 rounded border transition-colors ${item.is_featured ? 'bg-gold-100 text-gold-700 border-gold-300' : 'bg-ink-50 text-ink-500 border-ink-200 hover:border-gold-300'}`}
+                    >
+                      {item.is_featured ? '★ Featured' : '☆ Feature'}
+                    </button>
+                    <button onClick={() => deleteCollaboration(item.id)} className="p-1.5 text-ink-400 hover:text-red-600 transition-colors" title="Delete">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+                {editingCollaborationId === item.id && (
+                  <div className="border-t border-ink-200 px-4 py-4 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="sm:col-span-2">
+                        <Label>Title *</Label>
+                        <Input value={editCollaborationForm.title} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, title: e.target.value })} />
+                      </div>
+                      <div>
+                        <Label>Category *</Label>
+                        <Select value={editCollaborationForm.category} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, category: e.target.value })}>
+                          {COLLABORATION_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Deadline</Label>
+                        <Input type="datetime-local" value={editCollaborationForm.deadline} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, deadline: e.target.value })} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Description</Label>
+                        <RichTextEditor
+                          value={editCollaborationForm.description}
+                          onChange={(html) => setEditCollaborationForm({ ...editCollaborationForm, description: html })}
+                          placeholder="Full description…"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Application / submission link</Label>
+                        <Input value={editCollaborationForm.external_link} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, external_link: e.target.value })} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Contact info</Label>
+                        <Textarea value={editCollaborationForm.contact_info} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, contact_info: e.target.value })} rows={3} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" checked={editCollaborationForm.is_featured} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, is_featured: e.target.checked })} className="rounded border-ink-300" />
+                          Featured
+                        </label>
+                      </div>
+                      {item.photos.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <Label>Photos</Label>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {item.photos.map((url) => (
+                              <div key={url} className="relative group">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={url} alt="" className="w-20 h-16 object-cover rounded border border-ink-200" />
+                                <button
+                                  type="button"
+                                  onClick={() => removeCollaborationPhoto(item.id, url)}
+                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs opacity-0 group-hover:opacity-100"
+                                  title="Remove photo"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={() => updateCollaboration(item.id)} disabled={saving} variant="primary" size="sm">
+                        {saving ? 'Saving...' : 'Save changes'}
+                      </Button>
+                      <Button onClick={() => setEditingCollaborationId(null)} variant="ghost" size="sm">Cancel</Button>
                     </div>
                   </div>
                 )}

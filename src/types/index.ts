@@ -3,6 +3,7 @@ export type GalleryType = 'gallery' | 'museum' | 'library'
 export type EventType = 'exhibition' | 'talk' | 'art_fair' | 'workshop' | 'opening' | 'performance'
 export type AdminRole = 'super_admin' | 'gallery_admin' | 'artist'
 export type SourceType = 'gallery' | 'event' | 'artist' | 'newsletter'
+export type CollaborationCategory = 'open_call' | 'competition'
 
 export interface Gallery {
   id: string
@@ -115,5 +116,21 @@ export interface AdminProfile {
   role: AdminRole
   gallery_id: string | null
   artist_id: string | null
+  created_at: string
+}
+
+export interface Collaboration {
+  id: string
+  title: string
+  slug: string
+  category: CollaborationCategory
+  description: string | null
+  cover_image_url: string | null
+  photos: string[]
+  external_link: string | null
+  deadline: string | null
+  contact_info: string | null
+  is_featured: boolean
+  created_by: string | null
   created_at: string
 }

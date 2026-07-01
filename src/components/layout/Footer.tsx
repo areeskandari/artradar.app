@@ -14,6 +14,7 @@ import {
   Mail,
   Heart,
   Store,
+  Handshake,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
@@ -23,6 +24,8 @@ const linkClass = 'inline-flex items-center gap-2 text-ink-400 hover:text-gold-4
 const EXPLORE_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/galleries', label: 'Galleries', icon: Building2 },
   { href: '/events', label: 'Events', icon: Calendar },
+  { href: '/collaboration/open-calls', label: 'Open Calls', icon: Handshake },
+  { href: '/collaboration/competitions', label: 'Competitions', icon: Handshake },
   { href: '/for-kids', label: 'For Kids', icon: Baby },
   { href: '/artists', label: 'Artists', icon: User },
   { href: '/news', label: 'News', icon: Newspaper },

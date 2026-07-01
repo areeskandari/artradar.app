@@ -3,13 +3,14 @@ import { createAdminClient, createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
-type EntityType = 'gallery' | 'event' | 'artist' | 'news'
+type EntityType = 'gallery' | 'event' | 'artist' | 'news' | 'collaboration'
 
 const BUCKET_BY_ENTITY: Record<EntityType, string> = {
   gallery: 'gallery-images',
   event: 'event-images',
   artist: 'artist-images',
   news: 'news-images',
+  collaboration: 'collaboration-images',
 }
 
 function safeFilename(name: string) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing entityType/entityId' }, { status: 400 })
   }
 
-  if (!['gallery', 'event', 'artist', 'news'].includes(entityType)) {
+  if (!['gallery', 'event', 'artist', 'news', 'collaboration'].includes(entityType)) {
     return NextResponse.json({ error: 'Invalid entityType' }, { status: 400 })
   }
 

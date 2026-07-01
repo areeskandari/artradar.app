@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, isAfter, isBefore, parseISO } from 'date-fns'
-import type { EventType, GalleryArea, GalleryType } from '@/types'
+import type { EventType, GalleryArea, GalleryType, CollaborationCategory } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -54,12 +54,13 @@ export function isEventUpcoming(start: string | null): boolean {
   return isAfter(parseISO(start), new Date())
 }
 
-export function getPlaceholderImage(type: 'gallery' | 'event' | 'artist' | 'news', seed?: string): string {
+export function getPlaceholderImage(type: 'gallery' | 'event' | 'artist' | 'news' | 'collaboration', seed?: string): string {
   const seeds: Record<string, number> = {
     gallery: 1,
     event: 2,
     artist: 3,
     news: 4,
+    collaboration: 5,
   }
   return `https://picsum.photos/seed/${seed || seeds[type]}/800/600`
 }
@@ -98,4 +99,40 @@ export const EVENT_TYPE_CONFIG: Record<
   workshop: { label: 'Workshop', bg: 'bg-ink-50', color: 'text-ink-700 border-ink-200' },
   opening: { label: 'Opening', bg: 'bg-gold-100', color: 'text-gold-900 border-gold-300' },
   performance: { label: 'Performance', bg: 'bg-ink-100', color: 'text-ink-800 border-ink-200' },
+}
+
+export const COLLABORATION_CATEGORIES: { value: CollaborationCategory; label: string }[] = [
+  { value: 'open_call', label: 'Open Call' },
+  { value: 'competition', label: 'Competition' },
+]
+
+export const COLLABORATION_CATEGORY_CONFIG: Record<
+  CollaborationCategory,
+  { label: string; bg: string; color: string }
+> = {
+  open_call: { label: 'Open Call', bg: 'bg-gold-50', color: 'text-gold-800 border-gold-200' },
+  competition: { label: 'Competition', bg: 'bg-terracotta-50', color: 'text-terracotta-800 border-terracotta-200' },
+}
+
+export function isDeadlineOpen(deadline: string | null): boolean {
+  if (!deadline) return true
+  return isAfter(parseISO(deadline), new Date())
+}
+
+/** Append Art Radar UTM params to external collaboration links. */
+export function appendCollaborationUtm(
+  url: string,
+  category: CollaborationCategory,
+  slug: string
+): string {
+  try {
+    const parsed = new URL(url)
+    if (!parsed.searchParams.has('utm_source')) parsed.searchParams.set('utm_source', 'artradar')
+    if (!parsed.searchParams.has('utm_medium')) parsed.searchParams.set('utm_medium', 'collaboration')
+    if (!parsed.searchParams.has('utm_campaign')) parsed.searchParams.set('utm_campaign', category)
+    if (!parsed.searchParams.has('utm_content')) parsed.searchParams.set('utm_content', slug)
+    return parsed.toString()
+  } catch {
+    return url
+  }
 }

@@ -18,11 +18,12 @@ export default async function SuperAdminPage() {
     redirect('/admin')
   }
 
-  const [galleriesRes, artistsRes, eventsRes, newsRes, subscribersRes, galleryArtistsRes, eventArtistsRes, galleryAreasRes] = await Promise.all([
+  const [galleriesRes, artistsRes, eventsRes, newsRes, collaborationsRes, subscribersRes, galleryArtistsRes, eventArtistsRes, galleryAreasRes] = await Promise.all([
     supabase.from('galleries').select('*').order('name'),
     supabase.from('artists').select('*').order('name'),
     supabase.from('events').select('*, gallery:galleries(name)').order('start_date', { ascending: false }),
     supabase.from('news').select('*').order('publish_date', { ascending: false }),
+    supabase.from('collaborations').select('*').order('deadline', { ascending: true, nullsFirst: false }),
     supabase.from('subscribers').select('*').order('created_at', { ascending: false }).limit(50),
     supabase.from('gallery_artists').select('gallery_id, artist_id'),
     supabase.from('event_artists').select('event_id, artist_id'),
@@ -45,12 +46,19 @@ export default async function SuperAdminPage() {
   type GalleryAreaRow = { id: string; value: string; label: string; sort_order: number }
   const galleryAreasList = (galleryAreasRes.data || []) as GalleryAreaRow[]
 
+  type CollaborationRow = { photos?: unknown } & import('@/types').Collaboration
+  const collaborationsList = ((collaborationsRes.data || []) as CollaborationRow[]).map((row) => ({
+    ...row,
+    photos: Array.isArray(row.photos) ? row.photos.filter((p): p is string => typeof p === 'string') : [],
+  }))
+
   return (
     <SuperAdminClient
       galleries={galleriesRes.data || []}
       artists={artistsRes.data || []}
       events={eventsRes.data || []}
       news={newsRes.data || []}
+      collaborations={collaborationsList}
       subscribers={subscribersRes.data || []}
       galleryArtists={galleryArtists}
       eventArtists={eventArtists}

@@ -4,6 +4,6 @@ export const PAYMENTS_DISABLED = true
 /** Contact for new users awaiting admin access. */
 export const SUPPORT_CONTACT = {
   email: 'hello@dubaiartradar.com',
-  whatsAppNumber: '+971585413180',
+  whatsAppNumber: '+971558401009',
   whatsAppMessage: "Hi, I've signed up for the Art Radar admin and need access. Please assign my account a role.",
 }

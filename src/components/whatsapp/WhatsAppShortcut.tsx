@@ -5,7 +5,7 @@ import { MessageCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Textarea, Label } from '@/components/ui/Input'
 
-const WHATSAPP_NUMBER_E164 = '+971585413180'
+const WHATSAPP_NUMBER_E164 = '+971558401009'
 
 function toWaMeNumber(e164: string) {
   return e164.replace(/[^\d]/g, '')
