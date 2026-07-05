@@ -4,6 +4,7 @@ export type EventType = 'exhibition' | 'talk' | 'art_fair' | 'workshop' | 'openi
 export type AdminRole = 'super_admin' | 'gallery_admin' | 'artist'
 export type SourceType = 'gallery' | 'event' | 'artist' | 'newsletter'
 export type CollaborationCategory = 'open_call' | 'competition'
+export type CollaborationRegion = 'gcc' | 'europe' | 'usa' | 'canada'
 
 export interface Gallery {
   id: string
@@ -119,16 +120,27 @@ export interface AdminProfile {
   created_at: string
 }
 
+export interface CollaborationAttachment {
+  name: string
+  url: string
+  mime_type?: string | null
+  size?: number | null
+}
+
 export interface Collaboration {
   id: string
   title: string
   slug: string
   category: CollaborationCategory
+  regions: CollaborationRegion[]
   description: string | null
   cover_image_url: string | null
   photos: string[]
+  attachments: CollaborationAttachment[]
   external_link: string | null
   deadline: string | null
+  contact_email: string | null
+  contact_whatsapp: string | null
   contact_info: string | null
   is_featured: boolean
   created_by: string | null

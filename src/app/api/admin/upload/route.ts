@@ -3,7 +3,7 @@ import { createAdminClient, createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
-type EntityType = 'gallery' | 'event' | 'artist' | 'news' | 'collaboration'
+type EntityType = 'gallery' | 'event' | 'artist' | 'news' | 'collaboration' | 'collaboration-attachment'
 
 const BUCKET_BY_ENTITY: Record<EntityType, string> = {
   gallery: 'gallery-images',
@@ -11,6 +11,39 @@ const BUCKET_BY_ENTITY: Record<EntityType, string> = {
   artist: 'artist-images',
   news: 'news-images',
   collaboration: 'collaboration-images',
+  'collaboration-attachment': 'collaboration-attachments',
+}
+
+const ALLOWED_ATTACHMENT_EXTENSIONS = new Set([
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rtf', 'odt', 'ods', 'odp', 'csv',
+])
+
+const ALLOWED_ATTACHMENT_MIMES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'text/csv',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/rtf',
+  'application/vnd.oasis.opendocument.text',
+  'application/vnd.oasis.opendocument.spreadsheet',
+  'application/vnd.oasis.opendocument.presentation',
+  'application/octet-stream',
+])
+
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
+
+function isAllowedAttachment(file: File): boolean {
+  const ext = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() : ''
+  if (ext && ALLOWED_ATTACHMENT_EXTENSIONS.has(ext)) return true
+  if (file.type && ALLOWED_ATTACHMENT_MIMES.has(file.type)) return true
+  return false
 }
 
 function safeFilename(name: string) {
@@ -46,12 +79,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing entityType/entityId' }, { status: 400 })
   }
 
-  if (!['gallery', 'event', 'artist', 'news', 'collaboration'].includes(entityType)) {
+  if (!['gallery', 'event', 'artist', 'news', 'collaboration', 'collaboration-attachment'].includes(entityType)) {
     return NextResponse.json({ error: 'Invalid entityType' }, { status: 400 })
   }
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'Missing file' }, { status: 400 })
+  }
+
+  if (entityType === 'collaboration-attachment') {
+    if (!isAllowedAttachment(file)) {
+      return NextResponse.json({ error: 'File type not allowed. Use PDF, Word, Excel, PowerPoint, ZIP, or text files.' }, { status: 400 })
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      return NextResponse.json({ error: 'File too large (max 25 MB).' }, { status: 400 })
+    }
   }
 
   const bucket = BUCKET_BY_ENTITY[entityType as EntityType]
@@ -73,6 +115,13 @@ export async function POST(request: Request) {
 
   const { data } = admin.storage.from(bucket).getPublicUrl(path)
 
-  return NextResponse.json({ publicUrl: data.publicUrl, bucket, path })
+  return NextResponse.json({
+    publicUrl: data.publicUrl,
+    bucket,
+    path,
+    fileName: file.name,
+    mimeType: file.type || null,
+    size: file.size,
+  })
 }
 

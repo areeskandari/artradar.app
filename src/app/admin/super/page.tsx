@@ -46,10 +46,23 @@ export default async function SuperAdminPage() {
   type GalleryAreaRow = { id: string; value: string; label: string; sort_order: number }
   const galleryAreasList = (galleryAreasRes.data || []) as GalleryAreaRow[]
 
-  type CollaborationRow = { photos?: unknown } & import('@/types').Collaboration
+  type CollaborationRow = { photos?: unknown; attachments?: unknown; regions?: unknown } & import('@/types').Collaboration
+  const regionSet = new Set(['gcc', 'europe', 'usa', 'canada'])
   const collaborationsList = ((collaborationsRes.data || []) as CollaborationRow[]).map((row) => ({
     ...row,
     photos: Array.isArray(row.photos) ? row.photos.filter((p): p is string => typeof p === 'string') : [],
+    attachments: Array.isArray(row.attachments)
+      ? row.attachments.filter((a): a is import('@/types').CollaborationAttachment => {
+          if (!a || typeof a !== 'object') return false
+          const att = a as import('@/types').CollaborationAttachment
+          return typeof att.name === 'string' && typeof att.url === 'string'
+        })
+      : [],
+    regions: Array.isArray(row.regions)
+      ? row.regions.filter((r): r is import('@/types').CollaborationRegion =>
+          typeof r === 'string' && regionSet.has(r)
+        )
+      : [],
   }))
 
   return (

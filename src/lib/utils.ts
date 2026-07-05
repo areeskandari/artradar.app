@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, isAfter, isBefore, parseISO } from 'date-fns'
-import type { EventType, GalleryArea, GalleryType, CollaborationCategory } from '@/types'
+import type { EventType, GalleryArea, GalleryType, CollaborationCategory, CollaborationRegion } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -106,6 +106,23 @@ export const COLLABORATION_CATEGORIES: { value: CollaborationCategory; label: st
   { value: 'competition', label: 'Competition' },
 ]
 
+export const COLLABORATION_REGIONS: { value: CollaborationRegion; label: string }[] = [
+  { value: 'gcc', label: 'GCC' },
+  { value: 'europe', label: 'EUROPE' },
+  { value: 'usa', label: 'USA' },
+  { value: 'canada', label: 'CANADA' },
+]
+
+export const COLLABORATION_REGION_CONFIG: Record<
+  CollaborationRegion,
+  { label: string; bg: string; color: string }
+> = {
+  gcc: { label: 'GCC', bg: 'bg-gold-100', color: 'text-gold-900 border-gold-300' },
+  europe: { label: 'EUROPE', bg: 'bg-ink-100', color: 'text-ink-900 border-ink-300' },
+  usa: { label: 'USA', bg: 'bg-terracotta-100', color: 'text-terracotta-900 border-terracotta-300' },
+  canada: { label: 'CANADA', bg: 'bg-teal-50', color: 'text-teal-900 border-teal-300' },
+}
+
 export const COLLABORATION_CATEGORY_CONFIG: Record<
   CollaborationCategory,
   { label: string; bg: string; color: string }
@@ -134,5 +151,73 @@ export function appendCollaborationUtm(
     return parsed.toString()
   } catch {
     return url
+  }
+}
+
+export function formatFileSize(bytes: number | null | undefined): string {
+  if (!bytes || bytes <= 0) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+export function getAttachmentExtension(name: string): string {
+  const ext = name.includes('.') ? name.split('.').pop()?.toUpperCase() : ''
+  return ext || 'FILE'
+}
+
+const EMAIL_REGEX = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i
+const PHONE_REGEX = /(?:\+?\d[\d\s().-]{7,}\d)/
+
+export function extractEmailFromText(text: string): string | null {
+  const match = text.match(EMAIL_REGEX)
+  return match ? match[0] : null
+}
+
+export function extractPhoneFromText(text: string): string | null {
+  const match = text.match(PHONE_REGEX)
+  return match ? match[0].trim() : null
+}
+
+export function normalizeWhatsAppNumber(input: string): string {
+  return input.replace(/\D/g, '')
+}
+
+export function buildCollaborationMailtoUrl(email: string, title: string): string {
+  const subject = encodeURIComponent(`Inquiry: ${title}`)
+  const body = encodeURIComponent(
+    `Hi,\n\nI'm interested in "${title}" on Art Radar.\n\n`
+  )
+  return `mailto:${email}?subject=${subject}&body=${body}`
+}
+
+export function buildCollaborationWhatsAppUrl(phone: string, title: string): string {
+  const digits = normalizeWhatsAppNumber(phone)
+  const text = encodeURIComponent(
+    `Hi, I'm interested in "${title}" listed on Art Radar. Could you share more details?`
+  )
+  return `https://wa.me/${digits}?text=${text}`
+}
+
+export function getCollaborationContactLinks(
+  item: {
+    title: string
+    contact_email?: string | null
+    contact_whatsapp?: string | null
+    contact_info?: string | null
+  }
+) {
+  const email =
+    item.contact_email?.trim() ||
+    (item.contact_info ? extractEmailFromText(item.contact_info) : null)
+  const whatsapp =
+    item.contact_whatsapp?.trim() ||
+    (item.contact_info ? extractPhoneFromText(item.contact_info) : null)
+
+  return {
+    email: email || null,
+    whatsapp: whatsapp || null,
+    mailtoUrl: email ? buildCollaborationMailtoUrl(email, item.title) : null,
+    whatsappUrl: whatsapp ? buildCollaborationWhatsAppUrl(whatsapp, item.title) : null,
   }
 }

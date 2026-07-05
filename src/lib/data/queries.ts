@@ -2,7 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import type { MapGallery, MapEvent } from '@/components/map/MapView'
-import type { Event, EventType, Gallery, Collaboration, CollaborationCategory } from '@/types'
+import type { Event, EventType, Gallery, Collaboration, CollaborationCategory, CollaborationAttachment, CollaborationRegion } from '@/types'
 
 const PUBLIC_REVALIDATE_SECONDS = 60
 
@@ -86,9 +86,21 @@ export const getNewsBySlug = cache(async (slug: string) => {
   return data
 })
 
-function normalizeCollaborationRow(row: Collaboration & { photos?: unknown }): Collaboration {
+const COLLABORATION_REGIONS = new Set<CollaborationRegion>(['gcc', 'europe', 'usa', 'canada'])
+
+function normalizeCollaborationRow(row: Collaboration & { photos?: unknown; attachments?: unknown; regions?: unknown }): Collaboration {
   const photos = Array.isArray(row.photos) ? row.photos.filter((p): p is string => typeof p === 'string') : []
-  return { ...row, photos }
+  const attachments = Array.isArray(row.attachments)
+    ? row.attachments.filter((a): a is CollaborationAttachment => {
+        if (!a || typeof a !== 'object') return false
+        const att = a as CollaborationAttachment
+        return typeof att.name === 'string' && typeof att.url === 'string'
+      })
+    : []
+  const regions = Array.isArray(row.regions)
+    ? row.regions.filter((r): r is CollaborationRegion => typeof r === 'string' && COLLABORATION_REGIONS.has(r as CollaborationRegion))
+    : []
+  return { ...row, photos, attachments, regions }
 }
 
 export const getCollaborationBySlug = cache(async (slug: string) => {
@@ -99,6 +111,7 @@ export const getCollaborationBySlug = cache(async (slug: string) => {
 
 export async function fetchFilteredCollaborations(params: {
   category?: CollaborationCategory
+  region?: CollaborationRegion
   q?: string
   status?: 'open' | 'closed' | 'all'
   limit?: number
@@ -109,6 +122,7 @@ export async function fetchFilteredCollaborations(params: {
   let query = supabase.from('collaborations').select('*').order('deadline', { ascending: true, nullsFirst: false })
 
   if (params.category) query = query.eq('category', params.category)
+  if (params.region) query = query.contains('regions', [params.region])
   if (params.q) query = query.ilike('title', `%${params.q}%`)
 
   const status = params.status || 'open'

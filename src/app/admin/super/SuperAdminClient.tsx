@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings, Handshake } from 'lucide-react'
+import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings, Handshake, Paperclip } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea, Label, Select } from '@/components/ui/Input'
@@ -10,9 +10,10 @@ import { MultiSelect } from '@/components/ui/MultiSelect'
 import { Badge } from '@/components/ui/Badge'
 import { EventTypeBadge } from '@/components/ui/EventTypeBadge'
 import { CollaborationCategoryBadge } from '@/components/ui/CollaborationCategoryBadge'
+import { CollaborationRegionBadges } from '@/components/ui/CollaborationRegionBadges'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
-import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, COLLABORATION_CATEGORIES } from '@/lib/utils'
-import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration } from '@/types'
+import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, COLLABORATION_CATEGORIES, COLLABORATION_REGIONS, formatFileSize, getPlaceholderImage } from '@/lib/utils'
+import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration, CollaborationAttachment } from '@/types'
 
 type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'collaborations' | 'subscribers'
 
@@ -65,7 +66,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
   })
 
   const [editCollaborationForm, setEditCollaborationForm] = useState({
-    title: '', description: '', category: 'open_call' as string, external_link: '', deadline: '', contact_info: '', is_featured: false,
+    title: '', description: '', category: 'open_call' as string, regions: [] as string[], external_link: '', deadline: '', contact_email: '', contact_whatsapp: '', contact_info: '', is_featured: false,
   })
 
   // Relation multi-select state (when editing an entity)
@@ -94,8 +95,13 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
 
   const [showCollaborationForm, setShowCollaborationForm] = useState(false)
   const [collaborationForm, setCollaborationForm] = useState({
-    title: '', description: '', category: 'open_call' as string, external_link: '', deadline: '', contact_info: '', is_featured: false,
+    title: '', description: '', category: 'open_call' as string, regions: [] as string[], external_link: '', deadline: '', contact_email: '', contact_whatsapp: '', contact_info: '', is_featured: false,
   })
+  const [collaborationPosterFile, setCollaborationPosterFile] = useState<File | null>(null)
+  const [collaborationPosterPreview, setCollaborationPosterPreview] = useState<string | null>(null)
+  const [editCollaborationPosterFile, setEditCollaborationPosterFile] = useState<File | null>(null)
+  const [editCollaborationPosterPreview, setEditCollaborationPosterPreview] = useState<string | null>(null)
+  const [pendingCollaborationAttachments, setPendingCollaborationAttachments] = useState<File[]>([])
 
   // Gallery form
   const [showGalleryForm, setShowGalleryForm] = useState(false)
@@ -481,26 +487,90 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
     router.refresh()
   }
 
+  async function uploadCollaborationFile(entityId: string, file: File): Promise<string> {
+    const form = new FormData()
+    form.append('entityType', 'collaboration')
+    form.append('entityId', entityId)
+    form.append('file', file)
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: form })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || 'Upload failed')
+    const publicUrl = data.publicUrl as string | undefined
+    if (!publicUrl) throw new Error('Upload succeeded but URL missing')
+    return publicUrl
+  }
+
+  async function uploadCollaborationAttachmentFile(entityId: string, file: File): Promise<CollaborationAttachment> {
+    const form = new FormData()
+    form.append('entityType', 'collaboration-attachment')
+    form.append('entityId', entityId)
+    form.append('file', file)
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: form })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.error || 'Upload failed')
+    const publicUrl = data.publicUrl as string | undefined
+    if (!publicUrl) throw new Error('Upload succeeded but URL missing')
+    return {
+      name: (data.fileName as string) || file.name,
+      url: publicUrl,
+      mime_type: (data.mimeType as string) || file.type || null,
+      size: (data.size as number) || file.size,
+    }
+  }
+
+  function clearCollaborationPosterDraft() {
+    if (collaborationPosterPreview) URL.revokeObjectURL(collaborationPosterPreview)
+    setCollaborationPosterFile(null)
+    setCollaborationPosterPreview(null)
+  }
+
+  function clearEditCollaborationPosterDraft() {
+    if (editCollaborationPosterPreview) URL.revokeObjectURL(editCollaborationPosterPreview)
+    setEditCollaborationPosterFile(null)
+    setEditCollaborationPosterPreview(null)
+  }
+
+  function handleCollaborationPosterSelect(file: File | undefined, mode: 'create' | 'edit') {
+    if (!file) return
+    if (mode === 'create') {
+      if (collaborationPosterPreview) URL.revokeObjectURL(collaborationPosterPreview)
+      setCollaborationPosterFile(file)
+      setCollaborationPosterPreview(URL.createObjectURL(file))
+      return
+    }
+    if (editCollaborationPosterPreview) URL.revokeObjectURL(editCollaborationPosterPreview)
+    setEditCollaborationPosterFile(file)
+    setEditCollaborationPosterPreview(URL.createObjectURL(file))
+  }
+
   async function uploadCollaborationPhoto(collaborationId: string, file: File) {
     const key = `collaboration-photo:${collaborationId}`
     setUploadingKey(key)
     setMessage('')
     try {
-      const form = new FormData()
-      form.append('entityType', 'collaboration')
-      form.append('entityId', collaborationId)
-      form.append('file', file)
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: form })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Upload failed')
-      const publicUrl = data.publicUrl as string | undefined
-      if (!publicUrl) throw new Error('Upload succeeded but URL missing')
-
+      const publicUrl = await uploadCollaborationFile(collaborationId, file)
       const item = collaborations.find((c) => c.id === collaborationId)
       const photos = [...(item?.photos || []), publicUrl]
       const { error } = await supabase.from('collaborations').update({ photos }).eq('id', collaborationId)
       if (error) throw new Error(error.message)
       setMessage('Photo added!')
+      router.refresh()
+    } catch (e) {
+      setMessage(`Error: ${e instanceof Error ? e.message : 'Upload failed'}`)
+    } finally {
+      setUploadingKey(null)
+    }
+  }
+
+  async function uploadCollaborationPoster(collaborationId: string, file: File) {
+    const key = `collaboration:${collaborationId}`
+    setUploadingKey(key)
+    setMessage('')
+    try {
+      const publicUrl = await uploadCollaborationFile(collaborationId, file)
+      const { error } = await supabase.from('collaborations').update({ cover_image_url: publicUrl }).eq('id', collaborationId)
+      if (error) throw new Error(error.message)
+      setMessage('Poster updated!')
       router.refresh()
     } catch (e) {
       setMessage(`Error: ${e instanceof Error ? e.message : 'Upload failed'}`)
@@ -517,6 +587,48 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
     if (!error) router.refresh()
   }
 
+  async function uploadCollaborationAttachment(collaborationId: string, file: File) {
+    const key = `collaboration-attachment:${collaborationId}`
+    setUploadingKey(key)
+    setMessage('')
+    try {
+      const attachment = await uploadCollaborationAttachmentFile(collaborationId, file)
+      const item = collaborations.find((c) => c.id === collaborationId)
+      const attachments = [...(item?.attachments || []), attachment]
+      const { error } = await supabase.from('collaborations').update({ attachments }).eq('id', collaborationId)
+      if (error) throw new Error(error.message)
+      setMessage('Attachment added!')
+      router.refresh()
+    } catch (e) {
+      setMessage(`Error: ${e instanceof Error ? e.message : 'Upload failed'}`)
+    } finally {
+      setUploadingKey(null)
+    }
+  }
+
+  async function removeCollaborationAttachment(collaborationId: string, attachmentUrl: string) {
+    const item = collaborations.find((c) => c.id === collaborationId)
+    if (!item) return
+    const attachments = item.attachments.filter((a) => a.url !== attachmentUrl)
+    const { error } = await supabase.from('collaborations').update({ attachments }).eq('id', collaborationId)
+    if (!error) router.refresh()
+  }
+
+  async function appendCollaborationAttachments(
+    collaborationId: string,
+    files: File[],
+    existing: CollaborationAttachment[] = []
+  ) {
+    if (files.length === 0) return
+    const uploaded: CollaborationAttachment[] = []
+    for (const file of files) {
+      uploaded.push(await uploadCollaborationAttachmentFile(collaborationId, file))
+    }
+    const attachments = [...existing, ...uploaded]
+    const { error } = await supabase.from('collaborations').update({ attachments }).eq('id', collaborationId)
+    if (error) throw new Error(error.message)
+  }
+
   async function saveCollaboration() {
     if (!collaborationForm.title.trim()) {
       setMessage('Title is required')
@@ -524,22 +636,50 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
     }
     setSaving(true)
     setMessage('')
-    const { error } = await supabase.from('collaborations').insert({
+    const { data: created, error } = await supabase.from('collaborations').insert({
       title: collaborationForm.title,
       slug: slugify(collaborationForm.title),
       description: collaborationForm.description || null,
       category: collaborationForm.category,
+      regions: collaborationForm.regions,
       external_link: collaborationForm.external_link || null,
       deadline: collaborationForm.deadline || null,
+      contact_email: collaborationForm.contact_email.trim() || null,
+      contact_whatsapp: collaborationForm.contact_whatsapp.trim() || null,
       contact_info: collaborationForm.contact_info || null,
       is_featured: collaborationForm.is_featured,
       photos: [],
-    })
+      attachments: [],
+    }).select('id').single()
+
+    if (!error && created) {
+      try {
+        if (collaborationPosterFile) {
+          const publicUrl = await uploadCollaborationFile(created.id, collaborationPosterFile)
+          const { error: posterError } = await supabase
+            .from('collaborations')
+            .update({ cover_image_url: publicUrl })
+            .eq('id', created.id)
+          if (posterError) throw new Error(posterError.message)
+        }
+        if (pendingCollaborationAttachments.length > 0) {
+          await appendCollaborationAttachments(created.id, pendingCollaborationAttachments)
+        }
+      } catch (e) {
+        setSaving(false)
+        setMessage(`Error: Listing created but file upload failed — ${e instanceof Error ? e.message : 'Upload failed'}`)
+        router.refresh()
+        return
+      }
+    }
+
     setSaving(false)
     setMessage(error ? `Error: ${error.message}` : 'Collaboration created!')
     if (!error) {
       setShowCollaborationForm(false)
-      setCollaborationForm({ title: '', description: '', category: 'open_call', external_link: '', deadline: '', contact_info: '', is_featured: false })
+      setCollaborationForm({ title: '', description: '', category: 'open_call', regions: [], external_link: '', deadline: '', contact_email: '', contact_whatsapp: '', contact_info: '', is_featured: false })
+      clearCollaborationPosterDraft()
+      setPendingCollaborationAttachments([])
       router.refresh()
     }
   }
@@ -547,21 +687,37 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
   async function updateCollaboration(id: string) {
     setSaving(true)
     setMessage('')
-    const { error } = await supabase.from('collaborations').update({
-      title: editCollaborationForm.title,
-      slug: slugify(editCollaborationForm.title),
-      description: editCollaborationForm.description || null,
-      category: editCollaborationForm.category,
-      external_link: editCollaborationForm.external_link || null,
-      deadline: editCollaborationForm.deadline || null,
-      contact_info: editCollaborationForm.contact_info || null,
-      is_featured: editCollaborationForm.is_featured,
-    }).eq('id', id)
-    setSaving(false)
-    setMessage(error ? `Error: ${error.message}` : 'Collaboration updated!')
-    if (!error) {
-      setEditingCollaborationId(null)
-      router.refresh()
+    try {
+      let coverImageUrl: string | undefined
+      if (editCollaborationPosterFile) {
+        coverImageUrl = await uploadCollaborationFile(id, editCollaborationPosterFile)
+      }
+
+      const { error } = await supabase.from('collaborations').update({
+        title: editCollaborationForm.title,
+        slug: slugify(editCollaborationForm.title),
+        description: editCollaborationForm.description || null,
+        category: editCollaborationForm.category,
+        regions: editCollaborationForm.regions,
+        external_link: editCollaborationForm.external_link || null,
+        deadline: editCollaborationForm.deadline || null,
+        contact_email: editCollaborationForm.contact_email.trim() || null,
+        contact_whatsapp: editCollaborationForm.contact_whatsapp.trim() || null,
+        contact_info: editCollaborationForm.contact_info || null,
+        is_featured: editCollaborationForm.is_featured,
+        ...(coverImageUrl ? { cover_image_url: coverImageUrl } : {}),
+      }).eq('id', id)
+
+      setSaving(false)
+      setMessage(error ? `Error: ${error.message}` : 'Collaboration updated!')
+      if (!error) {
+        setEditingCollaborationId(null)
+        clearEditCollaborationPosterDraft()
+        router.refresh()
+      }
+    } catch (e) {
+      setSaving(false)
+      setMessage(`Error: ${e instanceof Error ? e.message : 'Upload failed'}`)
     }
   }
 
@@ -1482,6 +1638,13 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
               <div key={event.id} className="bg-card border border-ink-200 rounded-lg">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-3 min-w-0">
+                    {event.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={event.image_url} alt="" className="w-16 h-12 rounded object-cover border border-ink-200 shrink-0" />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={getPlaceholderImage('event', event.slug)} alt="" className="w-16 h-12 rounded object-cover border border-ink-200 shrink-0 opacity-60" />
+                    )}
                     <EventTypeBadge type={event.event_type} size="sm" />
                     <div className="min-w-0">
                       <button
@@ -1831,8 +1994,44 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                   </Select>
                 </div>
                 <div>
+                  <Label>Regions</Label>
+                  <MultiSelect
+                    options={COLLABORATION_REGIONS.map((r) => ({ id: r.value, label: r.label }))}
+                    value={collaborationForm.regions}
+                    onChange={(regions) => setCollaborationForm({ ...collaborationForm, regions })}
+                    placeholder="Select regions…"
+                  />
+                </div>
+                <div>
                   <Label>Deadline</Label>
                   <Input type="datetime-local" value={collaborationForm.deadline} onChange={(e) => setCollaborationForm({ ...collaborationForm, deadline: e.target.value })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Poster image</Label>
+                  <div className="flex flex-wrap items-start gap-4 mt-1">
+                    {collaborationPosterPreview && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={collaborationPosterPreview} alt="Poster preview" className="w-32 h-24 object-cover rounded border border-ink-200" />
+                    )}
+                    <label className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded border border-ink-200 bg-ink-50 text-ink-700 hover:border-ink-300 cursor-pointer">
+                      {collaborationPosterFile ? 'Change poster' : 'Upload poster'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          handleCollaborationPosterSelect(e.target.files?.[0], 'create')
+                          e.currentTarget.value = ''
+                        }}
+                      />
+                    </label>
+                    {collaborationPosterFile && (
+                      <button type="button" className="text-sm text-ink-500 hover:text-red-600" onClick={clearCollaborationPosterDraft}>
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-ink-500 mt-1">Shown as the cover on listing cards and the detail page.</p>
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Description</Label>
@@ -1847,9 +2046,56 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                   <Input value={collaborationForm.external_link} onChange={(e) => setCollaborationForm({ ...collaborationForm, external_link: e.target.value })} placeholder="https://…" />
                   <p className="text-xs text-ink-500 mt-1">UTM tracking is added automatically on the public page.</p>
                 </div>
+                <div>
+                  <Label>Contact email</Label>
+                  <Input type="email" value={collaborationForm.contact_email} onChange={(e) => setCollaborationForm({ ...collaborationForm, contact_email: e.target.value })} placeholder="submissions@gallery.com" />
+                </div>
+                <div>
+                  <Label>Contact WhatsApp</Label>
+                  <Input value={collaborationForm.contact_whatsapp} onChange={(e) => setCollaborationForm({ ...collaborationForm, contact_whatsapp: e.target.value })} placeholder="+971501234567" />
+                </div>
                 <div className="sm:col-span-2">
-                  <Label>Contact info</Label>
-                  <Textarea value={collaborationForm.contact_info} onChange={(e) => setCollaborationForm({ ...collaborationForm, contact_info: e.target.value })} placeholder="Email, phone, or contact instructions" rows={3} />
+                  <Label>Contact notes (optional)</Label>
+                  <Textarea value={collaborationForm.contact_info} onChange={(e) => setCollaborationForm({ ...collaborationForm, contact_info: e.target.value })} placeholder="Extra instructions, office hours, etc." rows={2} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Attachments</Label>
+                  <div className="mt-1 space-y-2">
+                    <label className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded border border-ink-200 bg-ink-50 text-ink-700 hover:border-ink-300 cursor-pointer">
+                      <Paperclip size={14} />
+                      Add file (PDF, Word, Excel, ZIP…)
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rtf,.odt,.csv,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="hidden"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || [])
+                          if (files.length > 0) {
+                            setPendingCollaborationAttachments((prev) => [...prev, ...files])
+                          }
+                          e.currentTarget.value = ''
+                        }}
+                      />
+                    </label>
+                    {pendingCollaborationAttachments.length > 0 && (
+                      <ul className="space-y-1">
+                        {pendingCollaborationAttachments.map((file, i) => (
+                          <li key={`${file.name}-${i}`} className="flex items-center justify-between gap-2 text-sm text-ink-700 bg-ink-50 border border-ink-200 rounded px-3 py-2">
+                            <span className="truncate">{file.name} <span className="text-ink-400">({formatFileSize(file.size)})</span></span>
+                            <button
+                              type="button"
+                              className="text-ink-400 hover:text-red-600 shrink-0"
+                              onClick={() => setPendingCollaborationAttachments((prev) => prev.filter((_, idx) => idx !== i))}
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <p className="text-xs text-ink-500 mt-1">Max 25 MB per file. Briefs, application forms, and guidelines.</p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="flex items-center gap-2 text-sm">
@@ -1860,7 +2106,17 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
               </div>
               <div className="flex gap-2">
                 <Button onClick={saveCollaboration} disabled={saving} variant="primary" size="sm">{saving ? 'Saving...' : 'Create Listing'}</Button>
-                <Button onClick={() => setShowCollaborationForm(false)} variant="ghost" size="sm">Cancel</Button>
+                <Button
+                  onClick={() => {
+                    setShowCollaborationForm(false)
+                    clearCollaborationPosterDraft()
+                    setPendingCollaborationAttachments([])
+                  }}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
           )}
@@ -1870,23 +2126,39 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
               <div key={item.id} className="bg-card border border-ink-200 rounded-lg">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <CollaborationCategoryBadge category={item.category} size="sm" />
-                    <div className="min-w-0">
+                    {item.cover_image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.cover_image_url} alt="" className="w-16 h-12 rounded object-cover border border-ink-200 shrink-0" />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={getPlaceholderImage('collaboration', item.slug)} alt="" className="w-16 h-12 rounded object-cover border border-ink-200 shrink-0 opacity-60" />
+                    )}
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CollaborationCategoryBadge category={item.category} size="sm" />
+                        <CollaborationRegionBadges regions={item.regions} size="sm" />
+                      </div>
+                      <div className="min-w-0">
                       <button
                         type="button"
                         className="text-left text-sm font-medium text-ink-900 truncate hover:underline"
                         onClick={() => {
                           if (editingCollaborationId === item.id) {
                             setEditingCollaborationId(null)
+                            clearEditCollaborationPosterDraft()
                             return
                           }
+                          clearEditCollaborationPosterDraft()
                           setEditingCollaborationId(item.id)
                           setEditCollaborationForm({
                             title: item.title || '',
                             description: item.description || '',
                             category: item.category,
+                            regions: item.regions || [],
                             external_link: item.external_link || '',
                             deadline: item.deadline ? item.deadline.slice(0, 16) : '',
+                            contact_email: item.contact_email || '',
+                            contact_whatsapp: item.contact_whatsapp || '',
                             contact_info: item.contact_info || '',
                             is_featured: !!item.is_featured,
                           })
@@ -1896,10 +2168,11 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                       </button>
                       <p className="text-xs text-ink-500">{item.deadline ? formatDate(item.deadline) : 'No deadline'}</p>
                     </div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <label className="text-xs px-2 py-1 rounded border border-ink-200 bg-ink-50 text-ink-600 hover:border-ink-300 cursor-pointer">
-                      {uploadingKey === `collaboration:${item.id}` ? 'Uploading…' : 'Cover'}
+                      {uploadingKey === `collaboration:${item.id}` ? 'Uploading…' : 'Poster'}
                       <input
                         type="file"
                         accept="image/*"
@@ -1908,13 +2181,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                         onChange={(e) => {
                           const f = e.target.files?.[0]
                           if (!f) return
-                          void uploadImageAndUpdate({
-                            entityType: 'collaboration',
-                            entityId: item.id,
-                            file: f,
-                            table: 'collaborations',
-                            field: 'cover_image_url',
-                          })
+                          void uploadCollaborationPoster(item.id, f)
                           e.currentTarget.value = ''
                         }}
                       />
@@ -1930,6 +2197,21 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                           const f = e.target.files?.[0]
                           if (!f) return
                           void uploadCollaborationPhoto(item.id, f)
+                          e.currentTarget.value = ''
+                        }}
+                      />
+                    </label>
+                    <label className="text-xs px-2 py-1 rounded border border-ink-200 bg-ink-50 text-ink-600 hover:border-ink-300 cursor-pointer">
+                      {uploadingKey === `collaboration-attachment:${item.id}` ? 'Uploading…' : 'Attach file'}
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rtf,.odt,.csv,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="hidden"
+                        disabled={uploadingKey !== null}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          void uploadCollaborationAttachment(item.id, f)
                           e.currentTarget.value = ''
                         }}
                       />
@@ -1959,8 +2241,54 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                         </Select>
                       </div>
                       <div>
+                        <Label>Regions</Label>
+                        <MultiSelect
+                          options={COLLABORATION_REGIONS.map((r) => ({ id: r.value, label: r.label }))}
+                          value={editCollaborationForm.regions}
+                          onChange={(regions) => setEditCollaborationForm({ ...editCollaborationForm, regions })}
+                          placeholder="Select regions…"
+                        />
+                      </div>
+                      <div>
                         <Label>Deadline</Label>
                         <Input type="datetime-local" value={editCollaborationForm.deadline} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, deadline: e.target.value })} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Poster image</Label>
+                        <div className="flex flex-wrap items-start gap-4 mt-1">
+                          {(editCollaborationPosterPreview || item.cover_image_url) && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={editCollaborationPosterPreview || item.cover_image_url || ''}
+                              alt="Poster preview"
+                              className="w-40 h-28 object-cover rounded border border-ink-200"
+                            />
+                          )}
+                          <label className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded border border-ink-200 bg-ink-50 text-ink-700 hover:border-ink-300 cursor-pointer">
+                            {item.cover_image_url || editCollaborationPosterFile ? 'Replace poster' : 'Upload poster'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                handleCollaborationPosterSelect(e.target.files?.[0], 'edit')
+                                e.currentTarget.value = ''
+                              }}
+                            />
+                          </label>
+                          {(editCollaborationPosterFile || item.cover_image_url) && (
+                            <button
+                              type="button"
+                              className="text-sm text-ink-500 hover:text-red-600"
+                              onClick={() => {
+                                clearEditCollaborationPosterDraft()
+                                void supabase.from('collaborations').update({ cover_image_url: null }).eq('id', item.id).then(() => router.refresh())
+                              }}
+                            >
+                              Remove poster
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div className="sm:col-span-2">
                         <Label>Description</Label>
@@ -1974,9 +2302,57 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                         <Label>Application / submission link</Label>
                         <Input value={editCollaborationForm.external_link} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, external_link: e.target.value })} />
                       </div>
+                      <div>
+                        <Label>Contact email</Label>
+                        <Input type="email" value={editCollaborationForm.contact_email} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, contact_email: e.target.value })} />
+                      </div>
+                      <div>
+                        <Label>Contact WhatsApp</Label>
+                        <Input value={editCollaborationForm.contact_whatsapp} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, contact_whatsapp: e.target.value })} />
+                      </div>
                       <div className="sm:col-span-2">
-                        <Label>Contact info</Label>
-                        <Textarea value={editCollaborationForm.contact_info} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, contact_info: e.target.value })} rows={3} />
+                        <Label>Contact notes (optional)</Label>
+                        <Textarea value={editCollaborationForm.contact_info} onChange={(e) => setEditCollaborationForm({ ...editCollaborationForm, contact_info: e.target.value })} rows={2} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>Attachments</Label>
+                        <div className="mt-1 space-y-2">
+                          <label className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded border border-ink-200 bg-ink-50 text-ink-700 hover:border-ink-300 cursor-pointer">
+                            <Paperclip size={14} />
+                            Add file
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rtf,.odt,.csv,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                              className="hidden"
+                              disabled={uploadingKey !== null}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0]
+                                if (!f) return
+                                void uploadCollaborationAttachment(item.id, f)
+                                e.currentTarget.value = ''
+                              }}
+                            />
+                          </label>
+                          {item.attachments.length > 0 && (
+                            <ul className="space-y-1">
+                              {item.attachments.map((att) => (
+                                <li key={att.url} className="flex items-center justify-between gap-2 text-sm text-ink-700 bg-ink-50 border border-ink-200 rounded px-3 py-2">
+                                  <a href={att.url} target="_blank" rel="noopener noreferrer" className="truncate hover:text-gold-600">
+                                    {att.name}
+                                    {att.size ? <span className="text-ink-400"> ({formatFileSize(att.size)})</span> : null}
+                                  </a>
+                                  <button
+                                    type="button"
+                                    className="text-ink-400 hover:text-red-600 shrink-0"
+                                    onClick={() => removeCollaborationAttachment(item.id, att.url)}
+                                  >
+                                    Remove
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                       </div>
                       <div className="sm:col-span-2">
                         <label className="flex items-center gap-2 text-sm">
@@ -2010,7 +2386,16 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                       <Button onClick={() => updateCollaboration(item.id)} disabled={saving} variant="primary" size="sm">
                         {saving ? 'Saving...' : 'Save changes'}
                       </Button>
-                      <Button onClick={() => setEditingCollaborationId(null)} variant="ghost" size="sm">Cancel</Button>
+                      <Button
+                        onClick={() => {
+                          setEditingCollaborationId(null)
+                          clearEditCollaborationPosterDraft()
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   </div>
                 )}

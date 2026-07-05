@@ -2,14 +2,18 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Calendar, Clock, ExternalLink, Mail, Star } from 'lucide-react'
+import { Calendar, Clock, ExternalLink, Mail, Star, Download, MessageCircle } from 'lucide-react'
 import { getCollaborationBySlug } from '@/lib/data/queries'
 import { CollaborationCategoryBadge } from '@/components/ui/CollaborationCategoryBadge'
+import { CollaborationRegionBadges } from '@/components/ui/CollaborationRegionBadges'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
   appendCollaborationUtm,
   formatDate,
+  formatFileSize,
+  getAttachmentExtension,
+  getCollaborationContactLinks,
   getPlaceholderImage,
   isDeadlineOpen,
   stripHtml,
@@ -52,6 +56,10 @@ export default async function CollaborationDetailPage({ params }: Props) {
     : null
   const extraPhotos = item.photos.filter((url) => url && url !== item.cover_image_url)
   const applyLabel = item.category === 'competition' ? 'Enter Competition' : 'Apply / Submit'
+  const contact = getCollaborationContactLinks(item)
+  const hasContactCta = contact.mailtoUrl || contact.whatsappUrl
+  const contactNotes = item.contact_info?.trim()
+  const showContactNotes = contactNotes && contactNotes !== contact.email && contactNotes !== contact.whatsapp
 
   return (
     <div className="animate-fade-in">
@@ -61,6 +69,7 @@ export default async function CollaborationDetailPage({ params }: Props) {
         <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 max-w-7xl mx-auto w-full">
           <div className="flex flex-wrap gap-2 mb-4">
             <CollaborationCategoryBadge category={item.category} />
+            <CollaborationRegionBadges regions={item.regions} />
             {item.is_featured && (
               <Badge variant="featured">
                 <Star size={10} fill="currentColor" /> Featured
@@ -90,6 +99,38 @@ export default async function CollaborationDetailPage({ params }: Props) {
                   className="prose-art max-w-none"
                   dangerouslySetInnerHTML={{ __html: item.description }}
                 />
+              </div>
+            )}
+
+            {item.attachments.length > 0 && (
+              <div>
+                <h2 className="type-h2 mb-4">Attachments</h2>
+                <ul className="space-y-2">
+                  {item.attachments.map((att) => (
+                    <li key={att.url}>
+                      <a
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={att.name}
+                        className="flex items-center gap-3 p-4 rounded-lg border border-ink-200 bg-card hover:border-gold-300 hover:bg-gold-50/50 transition-colors group"
+                      >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-ink-100 text-xs font-semibold text-ink-600 group-hover:bg-gold-100 group-hover:text-gold-800">
+                          {getAttachmentExtension(att.name)}
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm font-medium text-ink-900 truncate group-hover:text-gold-700">
+                            {att.name}
+                          </span>
+                          {att.size ? (
+                            <span className="text-xs text-ink-500">{formatFileSize(att.size)}</span>
+                          ) : null}
+                        </span>
+                        <Download size={16} className="shrink-0 text-ink-400 group-hover:text-gold-600" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
@@ -139,12 +180,32 @@ export default async function CollaborationDetailPage({ params }: Props) {
               )}
             </div>
 
-            {item.contact_info && (
+            {(hasContactCta || contactNotes) && (
               <div className="bg-ink-50 border border-ink-200 rounded-xl p-5">
-                <h3 className="font-medium text-ink-900 mb-2 flex items-center gap-2">
+                <h3 className="font-medium text-ink-900 mb-3 flex items-center gap-2">
                   <Mail size={16} className="text-gold-500" /> Contact
                 </h3>
-                <p className="text-sm text-ink-600 whitespace-pre-line">{item.contact_info}</p>
+                {hasContactCta && (
+                  <div className="flex flex-col gap-2 mb-3">
+                    {contact.mailtoUrl && (
+                      <a href={contact.mailtoUrl}>
+                        <Button variant="primary" className="w-full">
+                          <Mail size={16} /> Email {contact.email}
+                        </Button>
+                      </a>
+                    )}
+                    {contact.whatsappUrl && (
+                      <a href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer">
+                        <Button className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white border-[#25D366]">
+                          <MessageCircle size={16} /> WhatsApp
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                )}
+                {(showContactNotes || (!hasContactCta && contactNotes)) && (
+                  <p className="text-sm text-ink-600 whitespace-pre-line">{contactNotes}</p>
+                )}
               </div>
             )}
 
