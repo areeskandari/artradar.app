@@ -23,13 +23,16 @@ export function NewsCard({ post, className, variant = 'default' }: NewsCardProps
             <h2 className="type-h2 text-white group-hover:text-gold-300 transition-colors">
               {post.title}
             </h2>
-            {(post.related_gallery || post.related_artist) && (
+            {(post.related_gallery || post.related_artist || post.related_collaboration) && (
               <div className="flex items-center gap-2 mt-3">
                 {post.related_gallery && (
                   <span className="text-xs text-ink-300 bg-ink-800/80 px-2 py-0.5 rounded">{post.related_gallery.name}</span>
                 )}
                 {post.related_artist && (
                   <span className="text-xs text-ink-300 bg-ink-800/80 px-2 py-0.5 rounded">{post.related_artist.name}</span>
+                )}
+                {post.related_collaboration && (
+                  <span className="text-xs text-ink-300 bg-ink-800/80 px-2 py-0.5 rounded">{post.related_collaboration.title}</span>
                 )}
               </div>
             )}
@@ -58,7 +61,7 @@ export function NewsCard({ post, className, variant = 'default' }: NewsCardProps
           <h3 className="type-card-title group-hover:text-gold-600 transition-colors line-clamp-3">
             {post.title}
           </h3>
-          {(post.related_gallery || post.related_artist) && (
+          {(post.related_gallery || post.related_artist || post.related_collaboration) && (
             <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
               {post.related_gallery && (
                 <span className="text-xs text-ink-600 bg-ink-50 border border-ink-200 px-2 py-0.5 rounded">
@@ -68,6 +71,11 @@ export function NewsCard({ post, className, variant = 'default' }: NewsCardProps
               {post.related_artist && (
                 <span className="text-xs text-ink-600 bg-ink-50 border border-ink-200 px-2 py-0.5 rounded">
                   {post.related_artist.name}
+                </span>
+              )}
+              {post.related_collaboration && (
+                <span className="text-xs text-ink-600 bg-ink-50 border border-ink-200 px-2 py-0.5 rounded">
+                  {post.related_collaboration.title}
                 </span>
               )}
             </div>

@@ -62,7 +62,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
   })
 
   const [editNewsForm, setEditNewsForm] = useState({
-    title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '',
+    title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '', related_collaboration_id: '',
   })
 
   const [editCollaborationForm, setEditCollaborationForm] = useState({
@@ -77,6 +77,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
   const [editArtistGalleryIds, setEditArtistGalleryIds] = useState<string[]>([])
   const [editArtistEventIds, setEditArtistEventIds] = useState<string[]>([])
   const [editArtistNewsIds, setEditArtistNewsIds] = useState<string[]>([])
+  const [editCollaborationNewsIds, setEditCollaborationNewsIds] = useState<string[]>([])
 
   // Gallery areas (Settings): list from props, local state for add/edit
   const [areas, setAreas] = useState<{ id: string; value: string; label: string; sort_order: number }[]>([])
@@ -91,7 +92,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
 
   // News form
   const [showNewsForm, setShowNewsForm] = useState(false)
-  const [newsForm, setNewsForm] = useState({ title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '' })
+  const [newsForm, setNewsForm] = useState({ title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '', related_collaboration_id: '' })
 
   const [showCollaborationForm, setShowCollaborationForm] = useState(false)
   const [collaborationForm, setCollaborationForm] = useState({
@@ -346,6 +347,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
       publish_date: editNewsForm.publish_date || new Date().toISOString(),
       related_gallery_id: editNewsForm.related_gallery_id || null,
       related_artist_id: editNewsForm.related_artist_id || null,
+      related_collaboration_id: editNewsForm.related_collaboration_id || null,
     }).eq('id', id)
     setSaving(false)
     setMessage(error ? `Error: ${error.message}` : 'News updated!')
@@ -364,12 +366,13 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
       publish_date: newsForm.publish_date || new Date().toISOString(),
       related_gallery_id: newsForm.related_gallery_id || null,
       related_artist_id: newsForm.related_artist_id || null,
+      related_collaboration_id: newsForm.related_collaboration_id || null,
     })
     setSaving(false)
     setMessage(error ? `Error: ${error.message}` : 'News post created!')
     if (!error) {
       setShowNewsForm(false)
-      setNewsForm({ title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '' })
+      setNewsForm({ title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '', related_collaboration_id: '' })
       router.refresh()
     }
   }
@@ -708,13 +711,27 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
         ...(coverImageUrl ? { cover_image_url: coverImageUrl } : {}),
       }).eq('id', id)
 
-      setSaving(false)
-      setMessage(error ? `Error: ${error.message}` : 'Collaboration updated!')
-      if (!error) {
-        setEditingCollaborationId(null)
-        clearEditCollaborationPosterDraft()
-        router.refresh()
+      if (error) {
+        setSaving(false)
+        setMessage(`Error: ${error.message}`)
+        return
       }
+
+      const previouslyLinkedNewsIds = news.filter((n) => n.related_collaboration_id === id).map((n) => n.id)
+      for (const newsId of previouslyLinkedNewsIds) {
+        if (!editCollaborationNewsIds.includes(newsId)) {
+          await supabase.from('news').update({ related_collaboration_id: null }).eq('id', newsId)
+        }
+      }
+      for (const newsId of editCollaborationNewsIds) {
+        await supabase.from('news').update({ related_collaboration_id: id }).eq('id', newsId)
+      }
+
+      setSaving(false)
+      setMessage('Collaboration updated!')
+      setEditingCollaborationId(null)
+      clearEditCollaborationPosterDraft()
+      router.refresh()
     } catch (e) {
       setSaving(false)
       setMessage(`Error: ${e instanceof Error ? e.message : 'Upload failed'}`)
@@ -1835,7 +1852,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                   placeholder="Write your news post…"
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Publish Date</Label>
                   <Input type="datetime-local" value={newsForm.publish_date} onChange={(e) => setNewsForm({ ...newsForm, publish_date: e.target.value })} />
@@ -1852,6 +1869,13 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                   <Select value={newsForm.related_artist_id} onChange={(e) => setNewsForm({ ...newsForm, related_artist_id: e.target.value })}>
                     <option value="">— None —</option>
                     {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Related Collaboration</Label>
+                  <Select value={newsForm.related_collaboration_id} onChange={(e) => setNewsForm({ ...newsForm, related_collaboration_id: e.target.value })}>
+                    <option value="">— None —</option>
+                    {collaborations.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
                   </Select>
                 </div>
               </div>
@@ -1885,6 +1909,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                           publish_date: post.publish_date ? post.publish_date.slice(0, 16) : '',
                           related_gallery_id: post.related_gallery_id || '',
                           related_artist_id: post.related_artist_id || '',
+                          related_collaboration_id: post.related_collaboration_id || '',
                         })
                       }}
                     >
@@ -1934,7 +1959,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                           placeholder="Write your news post…"
                         />
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label>Publish Date</Label>
                           <Input type="datetime-local" value={editNewsForm.publish_date} onChange={(e) => setEditNewsForm({ ...editNewsForm, publish_date: e.target.value })} />
@@ -1951,6 +1976,13 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                           <Select value={editNewsForm.related_artist_id} onChange={(e) => setEditNewsForm({ ...editNewsForm, related_artist_id: e.target.value })}>
                             <option value="">— None —</option>
                             {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Related Collaboration</Label>
+                          <Select value={editNewsForm.related_collaboration_id} onChange={(e) => setEditNewsForm({ ...editNewsForm, related_collaboration_id: e.target.value })}>
+                            <option value="">— None —</option>
+                            {collaborations.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
                           </Select>
                         </div>
                       </div>
@@ -2162,6 +2194,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                             contact_info: item.contact_info || '',
                             is_featured: !!item.is_featured,
                           })
+                          setEditCollaborationNewsIds(news.filter((n) => n.related_collaboration_id === item.id).map((n) => n.id))
                         }}
                       >
                         {item.title}
@@ -2353,6 +2386,15 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
                             </ul>
                           )}
                         </div>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label>News (related to this collaboration)</Label>
+                        <MultiSelect
+                          options={news.map((n) => ({ id: n.id, label: n.title }))}
+                          value={editCollaborationNewsIds}
+                          onChange={setEditCollaborationNewsIds}
+                          placeholder="Select news…"
+                        />
                       </div>
                       <div className="sm:col-span-2">
                         <label className="flex items-center gap-2 text-sm">

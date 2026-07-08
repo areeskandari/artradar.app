@@ -92,6 +92,7 @@ export interface NewsPost {
   cover_image_url: string | null
   related_gallery_id: string | null
   related_artist_id: string | null
+  related_collaboration_id: string | null
   source_url: string | null
   source_name: string | null
   is_auto_imported?: boolean | null
@@ -100,6 +101,7 @@ export interface NewsPost {
   // Joined fields
   related_gallery?: Gallery
   related_artist?: Artist
+  related_collaboration?: Pick<Collaboration, 'id' | 'title' | 'slug' | 'category'> | Collaboration
 }
 
 export interface Subscriber {

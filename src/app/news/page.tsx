@@ -23,7 +23,7 @@ export default async function NewsPage() {
 
   const { data: posts } = await supabase
     .from('news')
-    .select('*, related_gallery:galleries(id, name, slug), related_artist:artists(id, name, slug)')
+    .select('*, related_gallery:galleries(id, name, slug), related_artist:artists(id, name, slug), related_collaboration:collaborations(id, title, slug, category)')
     .lte('publish_date', now)
     .order('publish_date', { ascending: false })
     .limit(20)

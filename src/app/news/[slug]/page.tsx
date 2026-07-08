@@ -6,8 +6,9 @@ import { ArrowLeft } from 'lucide-react'
 import { getNewsBySlug } from '@/lib/data/queries'
 import { GalleryCard } from '@/components/cards/GalleryCard'
 import { ArtistCard } from '@/components/cards/ArtistCard'
+import { CollaborationCard } from '@/components/cards/CollaborationCard'
 import { getPlaceholderImage, formatDate, stripHtml } from '@/lib/utils'
-import type { NewsPost } from '@/types'
+import type { NewsPost, Collaboration } from '@/types'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -90,7 +91,7 @@ export default async function NewsPostPage({ params }: Props) {
         )}
 
         {/* Related */}
-        {(newsPost.related_gallery || newsPost.related_artist) && (
+        {(newsPost.related_gallery || newsPost.related_artist || newsPost.related_collaboration) && (
           <div className="border-t border-ink-200 pt-8 mt-8">
             <h2 className="type-h2 mb-5">Related</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -99,6 +100,9 @@ export default async function NewsPostPage({ params }: Props) {
               )}
               {newsPost.related_artist && (
                 <ArtistCard artist={newsPost.related_artist} />
+              )}
+              {newsPost.related_collaboration && (
+                <CollaborationCard collaboration={newsPost.related_collaboration as Collaboration} />
               )}
             </div>
           </div>

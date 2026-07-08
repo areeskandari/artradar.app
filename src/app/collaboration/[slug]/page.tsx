@@ -3,11 +3,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Calendar, Clock, ExternalLink, Mail, Star, Download, MessageCircle } from 'lucide-react'
-import { getCollaborationBySlug } from '@/lib/data/queries'
+import { getCollaborationBySlug, getNewsByCollaborationId } from '@/lib/data/queries'
 import { CollaborationCategoryBadge } from '@/components/ui/CollaborationCategoryBadge'
 import { CollaborationRegionBadges } from '@/components/ui/CollaborationRegionBadges'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { NewsCard } from '@/components/cards/NewsCard'
 import {
   appendCollaborationUtm,
   formatDate,
@@ -48,6 +49,8 @@ export default async function CollaborationDetailPage({ params }: Props) {
   const { slug } = await params
   const item = await getCollaborationBySlug(slug)
   if (!item) notFound()
+
+  const relatedNews = await getNewsByCollaborationId(item.id)
 
   const imageSrc = item.cover_image_url || getPlaceholderImage('collaboration', item.slug)
   const open = isDeadlineOpen(item.deadline)
@@ -148,6 +151,17 @@ export default async function CollaborationDetailPage({ params }: Props) {
                         sizes="(max-width: 1024px) 100vw, 50vw"
                       />
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {relatedNews.length > 0 && (
+              <div>
+                <h2 className="type-h2 mb-4">Related News</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {relatedNews.map((post) => (
+                    <NewsCard key={post.id} post={post} />
                   ))}
                 </div>
               </div>

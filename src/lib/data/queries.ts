@@ -2,7 +2,7 @@ import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import type { MapGallery, MapEvent } from '@/components/map/MapView'
-import type { Event, EventType, Gallery, Collaboration, CollaborationCategory, CollaborationAttachment, CollaborationRegion } from '@/types'
+import type { Event, EventType, Gallery, NewsPost, Collaboration, CollaborationCategory, CollaborationAttachment, CollaborationRegion } from '@/types'
 
 const PUBLIC_REVALIDATE_SECONDS = 60
 
@@ -80,10 +80,27 @@ export const getNewsBySlug = cache(async (slug: string) => {
   const supabase = await createPublicDataClient()
   const { data } = await supabase
     .from('news')
-    .select('*, related_gallery:galleries(*), related_artist:artists(*)')
+    .select('*, related_gallery:galleries(*), related_artist:artists(*), related_collaboration:collaborations(*)')
     .eq('slug', slug)
     .single()
-  return data
+  if (!data) return null
+  const row = data as NewsPost & { related_collaboration?: Collaboration | null }
+  if (row.related_collaboration) {
+    row.related_collaboration = normalizeCollaborationRow(row.related_collaboration)
+  }
+  return row
+})
+
+export const getNewsByCollaborationId = cache(async (collaborationId: string) => {
+  const supabase = await createPublicDataClient()
+  const now = new Date().toISOString()
+  const { data } = await supabase
+    .from('news')
+    .select('id, title, slug, cover_image_url, publish_date, related_gallery_id, related_artist_id, related_collaboration_id')
+    .eq('related_collaboration_id', collaborationId)
+    .lte('publish_date', now)
+    .order('publish_date', { ascending: false })
+  return (data || []) as NewsPost[]
 })
 
 const COLLABORATION_REGIONS = new Set<CollaborationRegion>(['gcc', 'europe', 'usa', 'canada'])
