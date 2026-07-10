@@ -8,6 +8,8 @@ import { GalleryCard } from '@/components/cards/GalleryCard'
 import { ArtistCard } from '@/components/cards/ArtistCard'
 import { CollaborationCard } from '@/components/cards/CollaborationCard'
 import { getPlaceholderImage, formatDate, stripHtml } from '@/lib/utils'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { articleSchema, breadcrumbSchema } from '@/lib/seo'
 import type { NewsPost, Collaboration } from '@/types'
 
 interface Props {
@@ -46,6 +48,16 @@ export default async function NewsPostPage({ params }: Props) {
 
   return (
     <div className="animate-fade-in">
+      <JsonLd
+        data={[
+          articleSchema(newsPost),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'News', path: '/news' },
+            { name: newsPost.title, path: `/news/${newsPost.slug}` },
+          ]),
+        ]}
+      />
       {/* Hero */}
       <div className="relative h-64 sm:h-96 overflow-hidden bg-ink-900">
         <Image src={imageSrc} alt={newsPost.title} fill className="object-cover opacity-70" sizes="100vw" priority />

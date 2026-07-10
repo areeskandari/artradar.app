@@ -4,38 +4,37 @@ import './globals.css'
 import dynamic from 'next/dynamic'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { JsonLd } from '@/components/seo/JsonLd'
 import Script from 'next/script'
 import { cn } from '@/lib/utils'
 import { notoSerif } from '@/lib/fonts'
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, organizationSchema, websiteSchema } from '@/lib/seo'
 
 const WhatsAppShortcut = dynamic(
   () => import('@/components/whatsapp/WhatsAppShortcut').then((m) => ({ default: m.WhatsAppShortcut })),
   { ssr: false }
 )
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dubaiartradar.com'
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Art Radar — Your Guide to Dubai's Art Scene",
-    template: '%s | Art Radar',
+    default: `${SITE_NAME} — Your Guide to Dubai's Art Scene`,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. Your cultural compass for the UAE art world.",
-  keywords: ['Dubai art', 'galleries Dubai', 'art exhibitions Dubai', 'artists UAE', 'DIFC galleries', 'Alserkal Avenue', 'UAE art', 'Dubai galleries', 'art events Dubai'],
+  description: SITE_DESCRIPTION,
+  keywords: ['Dubai art', 'galleries Dubai', 'art exhibitions Dubai', 'artists UAE', 'DIFC galleries', 'Alserkal Avenue', 'UAE art', 'Dubai galleries', 'art events Dubai', 'Abu Dhabi art', 'MENA art'],
   openGraph: {
     type: 'website',
     locale: 'en_AE',
-    siteName: 'Art Radar',
-    title: "Art Radar — Your Guide to Dubai's Art Scene",
-    description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. Your cultural compass for the UAE art world.",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Your Guide to Dubai's Art Scene`,
+    description: SITE_DESCRIPTION,
     url: '/',
-    images: [{ url: '/logo.png', width: 1024, height: 1024, alt: 'Art Radar' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Art Radar — Your Guide to Dubai's Art Scene",
-    description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene.",
+    title: `${SITE_NAME} — Your Guide to Dubai's Art Scene`,
+    description: SITE_DESCRIPTION,
   },
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
@@ -81,30 +80,7 @@ export default function RootLayout({
             </Script>
           </>
         )}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@graph': [
-                {
-                  '@type': 'Organization',
-                  name: 'Art Radar',
-                  url: siteUrl,
-                  description: "Your guide to Dubai's art scene — galleries, exhibitions, artists and events.",
-                  sameAs: [],
-                },
-                {
-                  '@type': 'WebSite',
-                  name: 'Art Radar',
-                  url: siteUrl,
-                  description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene.",
-                  potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', url: `${siteUrl}/ask` }, 'query-input': 'required name=query' },
-                },
-              ],
-            }),
-          }}
-        />
+        <JsonLd data={[organizationSchema(), websiteSchema()]} />
         <Suspense fallback={<div className="sticky top-0 z-50 h-16 border-b border-ink-200 bg-cream/95" />}>
           <Navbar />
         </Suspense>

@@ -91,7 +91,7 @@ export function HomeHeroSection() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/hero-gallery.png"
-          alt=""
+          alt="Contemporary art gallery interior in Dubai"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-ink-950/80 via-ink-950/65 to-ink-950/55" />
@@ -102,8 +102,11 @@ export function HomeHeroSection() {
           <h1 className="font-serif text-[clamp(3rem,12vw,4.5rem)] leading-[1.08] tracking-[-0.025em] font-normal text-white sm:text-display mb-3">
             Your Guide to MENA Art Scene
           </h1>
-          <p className="type-lead-sm text-white/90 max-w-2xl mx-auto">
-            Step into a world of art, where vibrant, exhibitions meet the warmth of a living environment. Discover, connect and be inspired.
+          <p className="type-lead-sm text-white/95 max-w-2xl mx-auto font-medium">
+            Art Radar is a free directory of galleries, exhibitions, artists, and art prizes across Dubai, Abu Dhabi, and the wider MENA region — built for collectors, curators, and anyone exploring the UAE art scene.
+          </p>
+          <p className="type-lead-sm text-white/80 max-w-2xl mx-auto mt-3">
+            Discover what&apos;s on, filter by area or event type, and explore with confidence.
           </p>
           <div className="w-24 h-px bg-white/50 mx-auto mt-5" />
         </div>

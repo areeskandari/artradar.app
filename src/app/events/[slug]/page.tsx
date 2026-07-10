@@ -11,6 +11,8 @@ import { EventTypeBadge } from '@/components/ui/EventTypeBadge'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { getPlaceholderImage, formatDate, formatDateRange, isEventActive, stripHtml } from '@/lib/utils'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbSchema, eventSchema } from '@/lib/seo'
 import type { Artist, Gallery } from '@/types'
 
 interface Props {
@@ -60,6 +62,16 @@ export default async function EventPage({ params }: Props) {
 
   return (
     <div className="animate-fade-in">
+      <JsonLd
+        data={[
+          eventSchema(event),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Events', path: '/events' },
+            { name: event.title, path: `/events/${event.slug}` },
+          ]),
+        ]}
+      />
       {/* Hero */}
       <div className="relative h-64 sm:h-96 overflow-hidden bg-ink-900">
         <Image src={imageSrc} alt={event.title} fill className="object-cover opacity-80" sizes="100vw" priority />

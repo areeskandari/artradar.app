@@ -9,6 +9,8 @@ import { ArtistCard } from '@/components/cards/ArtistCard'
 import { SubscribeForm } from '@/components/sections/SubscribeForm'
 import { Badge } from '@/components/ui/Badge'
 import { getPlaceholderImage, isEventActive, isEventUpcoming, stripHtml } from '@/lib/utils'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbSchema, gallerySchema } from '@/lib/seo'
 import type { Event, Artist } from '@/types'
 
 interface Props {
@@ -75,6 +77,16 @@ export default async function GalleryProfilePage({ params }: Props) {
 
   return (
     <div className="animate-fade-in">
+      <JsonLd
+        data={[
+          gallerySchema(gallery),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Galleries', path: '/galleries' },
+            { name: gallery.name, path: `/galleries/${gallery.slug}` },
+          ]),
+        ]}
+      />
       {/* Hero */}
       <div className="relative h-72 sm:h-96 overflow-hidden bg-ink-900">
         <Image src={coverSrc} alt={gallery.name} fill className="object-cover opacity-80" sizes="100vw" />

@@ -19,18 +19,20 @@ import { NewsCard } from '@/components/cards/NewsCard'
 import { FilterBar } from '@/components/sections/FilterBar'
 import { SubscribeForm } from '@/components/sections/SubscribeForm'
 import { HomeMapSection } from '@/components/sections/HomeMapSection'
+import { FaqSection } from '@/components/sections/FaqSection'
 import { SectionHeader } from '@/components/ui/Typography'
+import { SITE_DESCRIPTION } from '@/lib/seo'
 import type { Gallery, NewsPost, Artist } from '@/types'
 
 export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "Your Guide to Dubai's Art Scene",
-  description: "Discover galleries, exhibitions, artists and events in Dubai's vibrant art scene. This week in Dubai, gallery directory, and art news.",
-  keywords: ['Dubai art', 'galleries Dubai', 'art exhibitions Dubai', 'artists UAE', 'DIFC', 'Alserkal Avenue', 'UAE art', 'art events Dubai'],
+  description: SITE_DESCRIPTION,
+  keywords: ['Dubai art', 'galleries Dubai', 'art exhibitions Dubai', 'artists UAE', 'DIFC', 'Alserkal Avenue', 'UAE art', 'art events Dubai', 'Abu Dhabi art', 'MENA art prizes'],
   openGraph: {
     title: "Art Radar — Your Guide to Dubai's Art Scene",
-    description: "Discover galleries, exhibitions, artists and events in Dubai. Gallery directory, events calendar, artist profiles.",
+    description: SITE_DESCRIPTION,
     url: '/',
   },
   alternates: { canonical: '/' },
@@ -338,6 +340,8 @@ export default async function HomePage({
       >
         <HomeMapSection galleries={mapGalleries} events={mapEvents} />
       </Section>
+
+      <FaqSection />
 
       {/* Newsletter */}
       <section className="py-12 sm:py-16 px-4 sm:px-6 geometric-bg bg-gold-50 border-t border-gold-200">

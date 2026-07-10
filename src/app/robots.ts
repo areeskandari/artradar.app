@@ -1,17 +1,17 @@
 import type { MetadataRoute } from 'next'
+import { AI_CRAWLER_AGENTS, SITE_URL } from '@/lib/seo'
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dubaiartradar.com'
+const DISALLOWED = ['/admin/', '/api/']
 
 export default function robots(): MetadataRoute.Robots {
+  const allowAll = { allow: '/' as const, disallow: DISALLOWED }
+
   return {
     rules: [
-      {
-        userAgent: '*',
-        allow: '/',
-        disallow: ['/admin/', '/api/'],
-      },
+      { userAgent: '*', ...allowAll },
+      ...AI_CRAWLER_AGENTS.map((userAgent) => ({ userAgent, ...allowAll })),
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   }
 }

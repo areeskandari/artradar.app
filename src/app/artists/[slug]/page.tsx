@@ -8,6 +8,8 @@ import { EventCard } from '@/components/cards/EventCard'
 import { GalleryCard } from '@/components/cards/GalleryCard'
 import { Badge } from '@/components/ui/Badge'
 import { getPlaceholderImage, stripHtml } from '@/lib/utils'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbSchema, personSchema } from '@/lib/seo'
 import type { Gallery, Event } from '@/types'
 
 interface Props {
@@ -60,6 +62,16 @@ export default async function ArtistPage({ params }: Props) {
 
   return (
     <div className="animate-fade-in">
+      <JsonLd
+        data={[
+          personSchema(artist),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Artists', path: '/artists' },
+            { name: artist.name, path: `/artists/${artist.slug}` },
+          ]),
+        ]}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
           {/* Sidebar */}

@@ -19,6 +19,8 @@ import {
   isDeadlineOpen,
   stripHtml,
 } from '@/lib/utils'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbSchema, collaborationSchema } from '@/lib/seo'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -71,6 +73,24 @@ export default async function CollaborationDetailPage({ params }: Props) {
 
   return (
     <div className="animate-fade-in">
+      <JsonLd
+        data={[
+          collaborationSchema(item),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            {
+              name: item.category === 'prize' ? 'Prizes' : item.category === 'competition' ? 'Competitions' : 'Open Calls',
+              path:
+                item.category === 'prize'
+                  ? '/collaboration/prizes'
+                  : item.category === 'competition'
+                    ? '/collaboration/competitions'
+                    : '/collaboration/open-calls',
+            },
+            { name: item.title, path: `/collaboration/${item.slug}` },
+          ]),
+        ]}
+      />
       <div className="relative h-72 sm:h-[28rem] overflow-hidden bg-ink-900">
         <Image src={imageSrc} alt={item.title} fill className="object-cover opacity-85" sizes="100vw" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/30 to-transparent" />
