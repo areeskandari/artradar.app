@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS collaborations (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   title text NOT NULL,
   slug text UNIQUE NOT NULL,
-  category text NOT NULL CHECK (category IN ('open_call', 'competition')),
+  category text NOT NULL CHECK (category IN ('open_call', 'competition', 'prize')),
   regions jsonb DEFAULT '[]'::jsonb,
   description text,
   cover_image_url text,

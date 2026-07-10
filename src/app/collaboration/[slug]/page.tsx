@@ -58,7 +58,12 @@ export default async function CollaborationDetailPage({ params }: Props) {
     ? appendCollaborationUtm(item.external_link, item.category, item.slug)
     : null
   const extraPhotos = item.photos.filter((url) => url && url !== item.cover_image_url)
-  const applyLabel = item.category === 'competition' ? 'Enter Competition' : 'Apply / Submit'
+  const applyLabel =
+    item.category === 'competition'
+      ? 'Enter Competition'
+      : item.category === 'prize'
+        ? 'Apply for Prize'
+        : 'Apply / Submit'
   const contact = getCollaborationContactLinks(item)
   const hasContactCta = contact.mailtoUrl || contact.whatsappUrl
   const contactNotes = item.contact_info?.trim()

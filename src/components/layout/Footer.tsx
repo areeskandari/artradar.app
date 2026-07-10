@@ -26,6 +26,7 @@ const EXPLORE_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/events', label: 'Events', icon: Calendar },
   { href: '/collaboration/open-calls', label: 'Open Calls', icon: Handshake },
   { href: '/collaboration/competitions', label: 'Competitions', icon: Handshake },
+  { href: '/collaboration/prizes', label: 'Prizes', icon: Handshake },
   { href: '/for-kids', label: 'For Kids', icon: Baby },
   { href: '/artists', label: 'Artists', icon: User },
   { href: '/news', label: 'News', icon: Newspaper },

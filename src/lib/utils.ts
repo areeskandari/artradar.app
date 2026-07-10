@@ -104,6 +104,7 @@ export const EVENT_TYPE_CONFIG: Record<
 export const COLLABORATION_CATEGORIES: { value: CollaborationCategory; label: string }[] = [
   { value: 'open_call', label: 'Open Call' },
   { value: 'competition', label: 'Competition' },
+  { value: 'prize', label: 'Prize' },
 ]
 
 export const COLLABORATION_REGIONS: { value: CollaborationRegion; label: string }[] = [
@@ -129,6 +130,7 @@ export const COLLABORATION_CATEGORY_CONFIG: Record<
 > = {
   open_call: { label: 'Open Call', bg: 'bg-gold-50', color: 'text-gold-800 border-gold-200' },
   competition: { label: 'Competition', bg: 'bg-terracotta-50', color: 'text-terracotta-800 border-terracotta-200' },
+  prize: { label: 'Prize', bg: 'bg-teal-50', color: 'text-teal-800 border-teal-200' },
 }
 
 export function isDeadlineOpen(deadline: string | null): boolean {

@@ -13,9 +13,23 @@ import { CollaborationCategoryBadge } from '@/components/ui/CollaborationCategor
 import { CollaborationRegionBadges } from '@/components/ui/CollaborationRegionBadges'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, COLLABORATION_CATEGORIES, COLLABORATION_REGIONS, formatFileSize, getPlaceholderImage } from '@/lib/utils'
+import { SUPPORT_CONTACT } from '@/lib/constants'
 import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration, CollaborationAttachment } from '@/types'
 
 type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'collaborations' | 'subscribers'
+
+const EMPTY_COLLABORATION_FORM = {
+  title: '',
+  description: '',
+  category: 'open_call' as string,
+  regions: [] as string[],
+  external_link: '',
+  deadline: '',
+  contact_email: SUPPORT_CONTACT.email,
+  contact_whatsapp: SUPPORT_CONTACT.whatsAppNumber,
+  contact_info: '',
+  is_featured: false,
+}
 
 interface Props {
   galleries: Gallery[]
@@ -95,9 +109,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
   const [newsForm, setNewsForm] = useState({ title: '', content: '', publish_date: '', related_gallery_id: '', related_artist_id: '', related_collaboration_id: '' })
 
   const [showCollaborationForm, setShowCollaborationForm] = useState(false)
-  const [collaborationForm, setCollaborationForm] = useState({
-    title: '', description: '', category: 'open_call' as string, regions: [] as string[], external_link: '', deadline: '', contact_email: '', contact_whatsapp: '', contact_info: '', is_featured: false,
-  })
+  const [collaborationForm, setCollaborationForm] = useState(EMPTY_COLLABORATION_FORM)
   const [collaborationPosterFile, setCollaborationPosterFile] = useState<File | null>(null)
   const [collaborationPosterPreview, setCollaborationPosterPreview] = useState<string | null>(null)
   const [editCollaborationPosterFile, setEditCollaborationPosterFile] = useState<File | null>(null)
@@ -680,7 +692,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
     setMessage(error ? `Error: ${error.message}` : 'Collaboration created!')
     if (!error) {
       setShowCollaborationForm(false)
-      setCollaborationForm({ title: '', description: '', category: 'open_call', regions: [], external_link: '', deadline: '', contact_email: '', contact_whatsapp: '', contact_info: '', is_featured: false })
+      setCollaborationForm(EMPTY_COLLABORATION_FORM)
       clearCollaborationPosterDraft()
       setPendingCollaborationAttachments([])
       router.refresh()
@@ -2013,7 +2025,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
 
           {showCollaborationForm && (
             <div className="bg-card border border-ink-200 rounded-lg p-5 mb-5 space-y-4">
-              <h3 className="font-medium text-ink-900">Add Open Call / Competition</h3>
+              <h3 className="font-medium text-ink-900">Add Open Call / Competition / Prize</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <Label>Title *</Label>

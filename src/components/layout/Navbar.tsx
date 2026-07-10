@@ -26,6 +26,7 @@ const GALLERY_NAV_LINKS = [
 const COLLABORATION_NAV_LINKS = [
   { href: '/collaboration/open-calls', label: 'Open Calls' },
   { href: '/collaboration/competitions', label: 'Competitions' },
+  { href: '/collaboration/prizes', label: 'Prizes' },
 ]
 
 const MOBILE_EXTRA_LINKS = [

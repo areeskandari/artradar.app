@@ -3,7 +3,7 @@ export type GalleryType = 'gallery' | 'museum' | 'library'
 export type EventType = 'exhibition' | 'talk' | 'art_fair' | 'workshop' | 'opening' | 'performance'
 export type AdminRole = 'super_admin' | 'gallery_admin' | 'artist'
 export type SourceType = 'gallery' | 'event' | 'artist' | 'newsletter'
-export type CollaborationCategory = 'open_call' | 'competition'
+export type CollaborationCategory = 'open_call' | 'competition' | 'prize'
 export type CollaborationRegion = 'gcc' | 'europe' | 'usa' | 'canada'
 
 export interface Gallery {
