@@ -13,7 +13,7 @@ import { CollaborationCategoryBadge } from '@/components/ui/CollaborationCategor
 import { CollaborationRegionBadges } from '@/components/ui/CollaborationRegionBadges'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, COLLABORATION_CATEGORIES, COLLABORATION_REGIONS, formatFileSize, getPlaceholderImage } from '@/lib/utils'
-import { SUPPORT_CONTACT } from '@/lib/constants'
+import { COLLABORATION_CONTACT } from '@/lib/constants'
 import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration, CollaborationAttachment } from '@/types'
 
 type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'collaborations' | 'subscribers'
@@ -25,8 +25,8 @@ const EMPTY_COLLABORATION_FORM = {
   regions: [] as string[],
   external_link: '',
   deadline: '',
-  contact_email: SUPPORT_CONTACT.email,
-  contact_whatsapp: SUPPORT_CONTACT.whatsAppNumber,
+  contact_email: COLLABORATION_CONTACT.email,
+  contact_whatsapp: COLLABORATION_CONTACT.whatsAppNumber,
   contact_info: '',
   is_featured: false,
 }
