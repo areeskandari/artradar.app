@@ -6,7 +6,7 @@ import { KEEP_ON_YOUR_RADAR as EVENT } from '@/lib/keep-on-your-radar'
 import { cn } from '@/lib/utils'
 
 export function RadarEventPhotos({ className }: { className?: string }) {
-  const photos = EVENT.photos
+  const photos = [...EVENT.photos]
   const count = photos.length
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
