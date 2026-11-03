@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
+import { SITE_URL } from '@/lib/seo'
 
 const linkClass = 'inline-flex items-center gap-2 text-ink-400 hover:text-gold-400 transition-colors'
 
@@ -52,6 +53,8 @@ function FooterLink({ href, label, icon: Icon }: { href: string; label: string; 
 }
 
 export function Footer() {
+  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL
+
   return (
     <footer className="bg-ink-950 text-ink-300 geometric-bg w-full min-w-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 w-full min-w-0">
@@ -117,10 +120,22 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink-500">
           <p>© {new Date().getFullYear()} Art Radar. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-gold-400 transition-colors">
-              <Instagram size={16} />
-            </a>
-            <a href="#" className="hover:text-gold-400 transition-colors">
+            {instagramUrl && (
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gold-400 transition-colors"
+                aria-label="Art Radar on Instagram"
+              >
+                <Instagram size={16} />
+              </a>
+            )}
+            <a
+              href={SITE_URL}
+              className="hover:text-gold-400 transition-colors"
+              aria-label="Art Radar website"
+            >
               <Globe size={16} />
             </a>
           </div>

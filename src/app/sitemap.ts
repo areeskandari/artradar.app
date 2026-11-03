@@ -5,6 +5,25 @@ import { createPublicDataClient } from '@/lib/supabase/server'
 const baseUrl = SITE_URL
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
+
+async function fetchTableSlugs(
+  table: 'artists' | 'events' | 'galleries' | 'news' | 'collaborations',
+  dateField: 'created_at' | 'publish_date'
+): Promise<{ slug: string; lastModified?: string }[]> {
+  try {
+    const supabase = await createPublicDataClient()
+    const { data, error } = await supabase.from(table).select(`slug, ${dateField}`)
+    if (error) throw error
+    return ((data || []) as { slug: string; created_at?: string; publish_date?: string }[]).map((row) => ({
+      slug: row.slug,
+      lastModified: row[dateField],
+    }))
+  } catch (e) {
+    console.error(`[sitemap] Failed to fetch ${table}:`, e)
+    return []
+  }
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
@@ -26,54 +45,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/donate`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
   ]
 
-  let dynamicPages: MetadataRoute.Sitemap = []
+  const [artists, events, galleries, news, collaborations] = await Promise.all([
+    fetchTableSlugs('artists', 'created_at'),
+    fetchTableSlugs('events', 'created_at'),
+    fetchTableSlugs('galleries', 'created_at'),
+    fetchTableSlugs('news', 'publish_date'),
+    fetchTableSlugs('collaborations', 'created_at'),
+  ])
 
-  try {
-    const supabase = await createPublicDataClient()
-
-    const [artists, events, galleries, news, collaborations] = await Promise.all([
-      supabase.from('artists').select('slug, created_at').then((r) => r.data || []),
-      supabase.from('events').select('slug, created_at').then((r) => r.data || []),
-      supabase.from('galleries').select('slug, created_at').then((r) => r.data || []),
-      supabase.from('news').select('slug, publish_date').then((r) => r.data || []),
-      supabase.from('collaborations').select('slug, created_at').then((r) => r.data || []),
-    ])
-
-    dynamicPages = [
-      ...(artists as { slug: string; created_at?: string }[]).map((a) => ({
-        url: `${baseUrl}/artists/${a.slug}`,
-        lastModified: a.created_at ? new Date(a.created_at) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      })),
-      ...(events as { slug: string; created_at?: string }[]).map((e) => ({
-        url: `${baseUrl}/events/${e.slug}`,
-        lastModified: e.created_at ? new Date(e.created_at) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      })),
-      ...(galleries as { slug: string; created_at?: string }[]).map((g) => ({
-        url: `${baseUrl}/galleries/${g.slug}`,
-        lastModified: g.created_at ? new Date(g.created_at) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-      })),
-      ...(news as { slug: string; publish_date?: string }[]).map((n) => ({
-        url: `${baseUrl}/news/${n.slug}`,
-        lastModified: n.publish_date ? new Date(n.publish_date) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      })),
-      ...(collaborations as { slug: string; created_at?: string }[]).map((c) => ({
-        url: `${baseUrl}/collaboration/${c.slug}`,
-        lastModified: c.created_at ? new Date(c.created_at) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      })),
-    ]
-  } catch (e) {
-    console.error('[sitemap] Failed to fetch dynamic routes:', e)
-  }
+  const dynamicPages: MetadataRoute.Sitemap = [
+    ...artists.map((a) => ({
+      url: `${baseUrl}/artists/${a.slug}`,
+      lastModified: a.lastModified ? new Date(a.lastModified) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
+    ...events.map((e) => ({
+      url: `${baseUrl}/events/${e.slug}`,
+      lastModified: e.lastModified ? new Date(e.lastModified) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
+    ...galleries.map((g) => ({
+      url: `${baseUrl}/galleries/${g.slug}`,
+      lastModified: g.lastModified ? new Date(g.lastModified) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    })),
+    ...news.map((n) => ({
+      url: `${baseUrl}/news/${n.slug}`,
+      lastModified: n.lastModified ? new Date(n.lastModified) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
+    ...collaborations.map((c) => ({
+      url: `${baseUrl}/collaboration/${c.slug}`,
+      lastModified: c.lastModified ? new Date(c.lastModified) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
+  ]
 
   return [...staticPages, ...dynamicPages]
 }

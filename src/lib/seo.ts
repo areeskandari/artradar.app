@@ -9,6 +9,26 @@ export const SITE_DESCRIPTION =
 export const SITE_TAGLINE =
   'Your reference for art, galleries, and artists across Dubai, Abu Dhabi, and MENA.'
 
+/** Primary nav targets — aligned with header/footer; used for SiteNavigationElement / sitelink hints. */
+export const SITELINK_NAV: { name: string; path: string }[] = [
+  { name: 'Galleries', path: '/galleries' },
+  { name: 'Events', path: '/events' },
+  { name: 'Artists', path: '/artists' },
+  { name: 'News', path: '/news' },
+  { name: 'Map', path: '/map' },
+  { name: 'About', path: '/about' },
+  { name: 'Contact', path: '/contact' },
+]
+
+/** Public social profiles for Organization sameAs (set via env). */
+export function orgSocialProfiles(): string[] {
+  return [
+    process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+    process.env.NEXT_PUBLIC_LINKEDIN_URL,
+    process.env.NEXT_PUBLIC_FACEBOOK_URL,
+  ].filter(Boolean) as string[]
+}
+
 export const AI_CRAWLER_AGENTS = [
   'GPTBot',
   'ChatGPT-User',
@@ -64,23 +84,38 @@ export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`
 }
 
+export function siteNavigationSchema() {
+  return SITELINK_NAV.map((item, index) => ({
+    '@type': 'SiteNavigationElement' as const,
+    '@id': `${SITE_URL}/#nav-${index + 1}`,
+    name: item.name,
+    url: absoluteUrl(item.path),
+  }))
+}
+
 export function organizationSchema() {
+  const sameAs = orgSocialProfiles()
   return {
     '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
     name: SITE_NAME,
     url: SITE_URL,
     logo: absoluteUrl('/logo.png'),
     description: SITE_DESCRIPTION,
-    sameAs: [] as string[],
+    ...(sameAs.length > 0 && { sameAs }),
   }
 }
 
 export function websiteSchema() {
+  const navigation = siteNavigationSchema()
   return {
     '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
     name: SITE_NAME,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    ...(navigation.length > 0 && { hasPart: navigation }),
     potentialAction: {
       '@type': 'SearchAction',
       target: {

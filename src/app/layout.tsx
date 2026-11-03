@@ -42,11 +42,11 @@ export const metadata: Metadata = {
     icon: [{ url: '/logo.png', type: 'image/png' }],
     apple: [{ url: '/logo.png', type: 'image/png' }],
   },
-  verification: {
-    // Optional: add when you have them
-    // google: 'google-site-verification-code',
-    // yandex: 'yandex-verification-code',
-  },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    },
+  }),
 }
 
 export default function RootLayout({
