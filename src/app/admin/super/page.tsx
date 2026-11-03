@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SuperAdminClient } from './SuperAdminClient'
+import { SPECIAL_EVENT_PAGES, getSpecialEventFlags } from '@/lib/special-events'
 
 export default async function SuperAdminPage() {
   const supabase = await createClient()
@@ -18,7 +19,7 @@ export default async function SuperAdminPage() {
     redirect('/admin')
   }
 
-  const [galleriesRes, artistsRes, eventsRes, newsRes, collaborationsRes, subscribersRes, galleryArtistsRes, eventArtistsRes, galleryAreasRes] = await Promise.all([
+  const [galleriesRes, artistsRes, eventsRes, newsRes, collaborationsRes, subscribersRes, galleryArtistsRes, eventArtistsRes, galleryAreasRes, specialEventFlags] = await Promise.all([
     supabase.from('galleries').select('*').order('name'),
     supabase.from('artists').select('*').order('name'),
     supabase.from('events').select('*, gallery:galleries(name)').order('start_date', { ascending: false }),
@@ -28,7 +29,15 @@ export default async function SuperAdminPage() {
     supabase.from('gallery_artists').select('gallery_id, artist_id'),
     supabase.from('event_artists').select('event_id, artist_id'),
     supabase.from('gallery_areas').select('*').order('sort_order').order('label'),
+    getSpecialEventFlags(),
   ])
+
+  const specialEvents = SPECIAL_EVENT_PAGES.map((event) => ({
+    slug: event.slug,
+    title: event.title,
+    path: event.path,
+    enabled: specialEventFlags[event.slug] !== false,
+  }))
 
   const galleryArtists: Record<string, string[]> = {}
   for (const row of galleryArtistsRes.data || []) {
@@ -76,6 +85,7 @@ export default async function SuperAdminPage() {
       galleryArtists={galleryArtists}
       eventArtists={eventArtists}
       galleryAreas={galleryAreasList}
+      specialEvents={specialEvents}
     />
   )
 }

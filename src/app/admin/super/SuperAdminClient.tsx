@@ -41,9 +41,10 @@ interface Props {
   galleryArtists: Record<string, string[]>
   eventArtists: Record<string, string[]>
   galleryAreas: { id: string; value: string; label: string; sort_order: number }[]
+  specialEvents: { slug: string; title: string; path: string; enabled: boolean }[]
 }
 
-export function SuperAdminClient({ galleries, artists, events, news, collaborations, subscribers, galleryArtists, eventArtists, galleryAreas }: Props) {
+export function SuperAdminClient({ galleries, artists, events, news, collaborations, subscribers, galleryArtists, eventArtists, galleryAreas, specialEvents }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [message, setMessage] = useState('')
@@ -92,6 +93,9 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
   const [editArtistEventIds, setEditArtistEventIds] = useState<string[]>([])
   const [editArtistNewsIds, setEditArtistNewsIds] = useState<string[]>([])
   const [editCollaborationNewsIds, setEditCollaborationNewsIds] = useState<string[]>([])
+
+  const [specialEventToggles, setSpecialEventToggles] = useState(specialEvents)
+  const [togglingSpecial, setTogglingSpecial] = useState<string | null>(null)
 
   // Gallery areas (Settings): list from props, local state for add/edit
   const [areas, setAreas] = useState<{ id: string; value: string; label: string; sort_order: number }[]>([])
@@ -781,6 +785,34 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
     setAreas(galleryAreas)
   }, [galleryAreas])
 
+  useEffect(() => {
+    setSpecialEventToggles(specialEvents)
+  }, [specialEvents])
+
+  async function toggleSpecialEvent(slug: string, enabled: boolean) {
+    setTogglingSpecial(slug)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/special-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, enabled }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setMessage(`Error: ${data.error || 'Failed to update special event'}`)
+        return
+      }
+      setSpecialEventToggles((current) =>
+        current.map((event) => (event.slug === slug ? { ...event, enabled } : event))
+      )
+      setMessage(enabled ? 'Special event is on.' : 'Special event is off.')
+      router.refresh()
+    } finally {
+      setTogglingSpecial(null)
+    }
+  }
+
   async function saveGalleryArea() {
     const value = areaForm.value.trim()
     const label = areaForm.label.trim()
@@ -917,6 +949,43 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
       {/* SETTINGS */}
       {tab === 'settings' && (
         <div className="space-y-10">
+          <div>
+            <h2 className="font-serif text-xl text-ink-900 mb-2">Special events</h2>
+            <p className="text-sm text-ink-500 mb-4">
+              Turn branded event pages and their listing banners on or off. Off hides the page (404) and removes the events banner.
+            </p>
+            <div className="bg-card border border-ink-200 rounded-lg divide-y divide-ink-100">
+              {specialEventToggles.map((event) => (
+                <div key={event.slug} className="flex items-center justify-between gap-4 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-ink-900">{event.title}</p>
+                    <p className="text-xs text-ink-500 font-mono">{event.path}</p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={togglingSpecial === event.slug}
+                    onClick={() => toggleSpecialEvent(event.slug, !event.enabled)}
+                    className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 disabled:opacity-60 ${
+                      event.enabled ? 'bg-gold-500' : 'bg-ink-200'
+                    }`}
+                    role="switch"
+                    aria-checked={event.enabled}
+                    aria-label={`${event.enabled ? 'Turn off' : 'Turn on'} ${event.title}`}
+                  >
+                    <span
+                      className={`inline-block size-5 rounded-full bg-white shadow-sm transition-transform ${
+                        event.enabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-ink-400 mt-3">
+              If toggling fails, run <span className="font-mono">supabase/special-events.sql</span> in the Supabase SQL editor.
+            </p>
+          </div>
+
           {/* Pending requests */}
           <div>
             <h2 className="font-serif text-xl text-ink-900 mb-2">Pending requests</h2>

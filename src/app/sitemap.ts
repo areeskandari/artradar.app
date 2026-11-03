@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/seo'
 import { createPublicDataClient } from '@/lib/supabase/server'
+import { isSpecialEventEnabled } from '@/lib/special-events'
+import { KEEP_ON_YOUR_RADAR } from '@/lib/keep-on-your-radar'
 
 const baseUrl = SITE_URL
 
@@ -35,6 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/ask`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/artists`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    ...(await isSpecialEventEnabled(KEEP_ON_YOUR_RADAR.slug)
+      ? [{ url: `${baseUrl}/events/${KEEP_ON_YOUR_RADAR.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 }]
+      : []),
     { url: `${baseUrl}/galleries`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/collaboration/open-calls`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },

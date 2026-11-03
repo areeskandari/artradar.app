@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { fetchFilteredEvents } from '@/lib/data/queries'
+import { getEventsPageBanners } from '@/lib/banners'
 import { EventCard } from '@/components/cards/EventCard'
 import { FilterBar } from '@/components/sections/FilterBar'
+import { PageBanner } from '@/components/sections/PageBanner'
 import { EventCardSkeleton } from '@/components/ui/Skeleton'
 import { EmptyState, PageHeader } from '@/components/ui/Typography'
 
@@ -56,8 +58,12 @@ async function EventsGrid({ searchParams }: Props) {
 }
 
 export default async function EventsPage({ searchParams }: Props) {
+  const banners = await getEventsPageBanners()
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full min-w-0">
+      <PageBanner items={banners} size="compact" className="mb-8 sm:mb-10" />
+
       <PageHeader
         eyebrow="Calendar"
         title="Events"
