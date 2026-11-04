@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Oswald } from 'next/font/google'
-import { Calendar, Clock, ExternalLink, Instagram, MapPin } from 'lucide-react'
+import { ArrowRight, Calendar, Clock, ExternalLink, Instagram, MapPin } from 'lucide-react'
 import { KEEP_ON_YOUR_RADAR as EVENT } from '@/lib/keep-on-your-radar'
 import { cn } from '@/lib/utils'
 
@@ -52,15 +52,17 @@ export function RadarGalleryPath() {
             href={gallery.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-[#3a271c] hover:text-[#fa6628] transition-colors"
+            className="inline-flex items-center gap-1.5 font-medium text-[#3a271c] hover:text-[#fa6628] transition-colors"
           >
+            <ArrowRight size={14} strokeWidth={2} className="shrink-0 text-[#fa6628]" aria-hidden />
             {gallery.name}
           </a>
         ) : (
           <Link
             href={gallery.href}
-            className="font-medium text-[#3a271c] hover:text-[#fa6628] transition-colors"
+            className="inline-flex items-center gap-1.5 font-medium text-[#3a271c] hover:text-[#fa6628] transition-colors"
           >
+            <ArrowRight size={14} strokeWidth={2} className="shrink-0 text-[#fa6628]" aria-hidden />
             {gallery.name}
           </Link>
         )

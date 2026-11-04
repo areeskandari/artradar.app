@@ -4,7 +4,7 @@ export const KEEP_ON_YOUR_RADAR = {
   eyebrow: 'Our very first Art Radar event is here.',
   tagline: 'Art · Walk · Talk',
   description:
-    'Walk with us through Alserkal Avenue. One path, six galleries, and we walk it together. This is Art Radar, a community by vin.meet — meet people who live for art. Saturday, November 7th, 5 PM, at the entrance of Leila Heller Gallery.',
+    'Walk with us through Alserkal Avenue. One path, five galleries, and we walk it together. This is Art Radar, a community by vin.meet — meet people who live for art. Saturday, November 7th, 5 PM, at the entrance of Leila Heller Gallery.',
   startDate: '2026-11-07T17:00:00+04:00',
   dateLabel: 'Saturday, November 7th',
   timeLabel: '5 PM',
@@ -19,48 +19,17 @@ export const KEEP_ON_YOUR_RADAR = {
     },
     {
       src: '/images/banners/keep-on-your-radar-walk.jpg',
-      alt: 'Art Radar walk at Alserkal Avenue, Dubai — one path, six galleries',
+      alt: 'Art Radar walk at Alserkal Avenue, Dubai — one path, five galleries',
     },
   ],
   communityBy: 'vin.meet',
   communityHandle: 'vin.meet',
   communityUrl: 'https://vinmeet.io',
   galleries: [
-    {
-      name: 'Leila Heller Gallery',
-      handle: 'leilahellergallery',
-      href: '/galleries/leila-heller-gallery',
-      external: false,
-    },
-    {
-      name: 'The Third Line',
-      handle: 'thethirdlinedxb',
-      href: '/galleries/the-third-line',
-      external: false,
-    },
-    {
-      name: 'Efie Gallery',
-      handle: 'efiegallery',
-      href: 'https://www.instagram.com/efiegallery/',
-      external: true,
-    },
-    {
-      name: 'CARBON 12',
-      handle: 'carbon12gallery',
-      href: '/galleries/carbon-12',
-      external: false,
-    },
-    {
-      name: 'Green Art Gallery',
-      handle: 'greenartgallerydubai',
-      href: '/galleries/green-art-gallery',
-      external: false,
-    },
-    {
-      name: 'Ayyam Gallery',
-      handle: 'ayyamgallery',
-      href: '/galleries/ayyam-gallery',
-      external: false,
-    },
+    { name: 'Leila Heller Gallery', handle: 'leilahellergallery', href: '/galleries/leila-heller-gallery', external: false },
+    { name: 'The Third Line Gallery', handle: 'thethirdlinedxb', href: '/galleries/the-third-line', external: false },
+    { name: 'Ishara Art Foundation', handle: 'isharaartfoundation', href: '/galleries/ishara-art-foundation', external: false },
+    { name: 'Firetti Contemporary', handle: 'firetticontemporary', href: 'https://www.instagram.com/firetticontemporary/', external: true },
+    { name: 'Efie Gallery', handle: 'efiegallery', href: 'https://www.instagram.com/efiegallery/', external: true },
   ],
 } as const
