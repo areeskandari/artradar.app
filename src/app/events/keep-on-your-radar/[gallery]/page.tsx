@@ -5,7 +5,7 @@ import { KEEP_ON_YOUR_RADAR_STOPS, getWalkStop, walkStopPath } from '@/lib/keep-
 import { isSpecialEventEnabled } from '@/lib/special-events'
 import { RadarWalkStop } from '@/components/events/RadarWalkStop'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { absoluteUrl, breadcrumbSchema, SITE_NAME } from '@/lib/seo'
+import { breadcrumbSchema, SITE_NAME } from '@/lib/seo'
 
 export const revalidate = 60
 
