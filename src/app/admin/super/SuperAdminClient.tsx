@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings, Handshake, Paperclip } from 'lucide-react'
+import { Shield, Building2, User, Calendar, Newspaper, Users, Star, Trash2, CheckCircle, Plus, Settings, Handshake, Paperclip, Contact } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea, Label, Select } from '@/components/ui/Input'
@@ -14,9 +14,9 @@ import { CollaborationRegionBadges } from '@/components/ui/CollaborationRegionBa
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { formatDate, slugify, GALLERY_AREAS, GALLERY_TYPES, EVENT_TYPES, COLLABORATION_CATEGORIES, COLLABORATION_REGIONS, formatFileSize, getPlaceholderImage } from '@/lib/utils'
 import { COLLABORATION_CONTACT } from '@/lib/constants'
-import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration, CollaborationAttachment } from '@/types'
+import type { Gallery, Artist, Event, NewsPost, Subscriber, Collaboration, CollaborationAttachment, CrmLead } from '@/types'
 
-type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'collaborations' | 'subscribers'
+type Tab = 'overview' | 'settings' | 'galleries' | 'artists' | 'events' | 'news' | 'collaborations' | 'subscribers' | 'crm'
 
 const EMPTY_COLLABORATION_FORM = {
   title: '',
@@ -42,9 +42,10 @@ interface Props {
   eventArtists: Record<string, string[]>
   galleryAreas: { id: string; value: string; label: string; sort_order: number }[]
   specialEvents: { slug: string; title: string; path: string; enabled: boolean }[]
+  crmLeads: CrmLead[]
 }
 
-export function SuperAdminClient({ galleries, artists, events, news, collaborations, subscribers, galleryArtists, eventArtists, galleryAreas, specialEvents }: Props) {
+export function SuperAdminClient({ galleries, artists, events, news, collaborations, subscribers, galleryArtists, eventArtists, galleryAreas, specialEvents, crmLeads }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [message, setMessage] = useState('')
@@ -886,6 +887,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
     { id: 'news', label: 'News', icon: <Newspaper size={14} />, count: news.length },
     { id: 'collaborations', label: 'Collaboration', icon: <Handshake size={14} />, count: collaborations.length },
     { id: 'subscribers', label: 'Subscribers', icon: <Users size={14} />, count: subscribers.length },
+    { id: 'crm', label: 'CRM', icon: <Contact size={14} />, count: crmLeads.length },
   ]
 
   return (
@@ -932,6 +934,7 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
             { label: 'News Posts', count: news.length, sub: 'published', icon: Newspaper },
             { label: 'Collaborations', count: collaborations.length, sub: `${collaborations.filter(c => c.category === 'open_call').length} open calls`, icon: Handshake },
             { label: 'Subscribers', count: subscribers.length, sub: 'total', icon: Users },
+            { label: 'CRM leads', count: crmLeads.length, sub: 'event captures', icon: Contact },
             { label: 'Featured Galleries', count: galleries.filter(g => g.is_featured).length, sub: 'on homepage', icon: Star },
           ].map(({ label, count, sub, icon: Icon }) => (
             <div key={label} className="bg-card border border-ink-200 rounded-lg p-4">
@@ -2525,6 +2528,60 @@ export function SuperAdminClient({ galleries, artists, events, news, collaborati
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* CRM */}
+      {tab === 'crm' && (
+        <div>
+          <h2 className="font-serif text-xl text-ink-900 mb-2">CRM</h2>
+          <p className="text-sm text-ink-500 mb-4">
+            Leads from the Keep on your Radar landing page. If this list is empty after submissions, run supabase/crm-leads.sql in Supabase.
+          </p>
+          {crmLeads.length === 0 ? (
+            <p className="text-ink-500 text-sm">No CRM leads yet.</p>
+          ) : (
+            <div className="overflow-x-auto bg-card border border-ink-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ink-200 bg-ink-50">
+                    <th className="text-left py-2 px-3 text-ink-600 font-medium">Full name</th>
+                    <th className="text-left py-2 px-3 text-ink-600 font-medium">Phone</th>
+                    <th className="text-left py-2 px-3 text-ink-600 font-medium">Email</th>
+                    <th className="text-left py-2 px-3 text-ink-600 font-medium">Source</th>
+                    <th className="text-left py-2 px-3 text-ink-600 font-medium">Date</th>
+                    <th className="text-right py-2 px-3 text-ink-600 font-medium"> </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {crmLeads.map((lead) => (
+                    <tr key={lead.id} className="border-b border-ink-100 hover:bg-ink-50">
+                      <td className="py-2 px-3 text-ink-900">{lead.full_name}</td>
+                      <td className="py-2 px-3 text-ink-600">{lead.phone}</td>
+                      <td className="py-2 px-3 text-ink-600">{lead.email}</td>
+                      <td className="py-2 px-3">
+                        <span className="text-xs bg-ink-100 text-ink-600 px-2 py-0.5 rounded">{lead.source}</span>
+                      </td>
+                      <td className="py-2 px-3 text-ink-500">{formatDate(lead.created_at)}</td>
+                      <td className="py-2 px-3 text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={async () => {
+                            if (!confirm('Delete this lead?')) return
+                            await supabase.from('crm_leads').delete().eq('id', lead.id)
+                            router.refresh()
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

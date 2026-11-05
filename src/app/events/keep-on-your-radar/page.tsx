@@ -113,6 +113,14 @@ export default async function KeepOnYourRadarPage() {
           <div className="space-y-8 text-[1.0625rem] leading-relaxed text-[#3a271c]">
             <p>Walk with us through Alserkal Avenue, from:</p>
             <RadarGalleryPath />
+            <figure className="overflow-hidden rounded-lg outline outline-1 outline-black/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={EVENT.mapSrc}
+                alt={EVENT.mapAlt}
+                className="block h-auto w-full"
+              />
+            </figure>
             <div className="space-y-4">
               <p>One path, five galleries, and we walk it together.</p>
               <p>

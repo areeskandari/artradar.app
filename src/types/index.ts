@@ -104,6 +104,15 @@ export interface NewsPost {
   related_collaboration?: Pick<Collaboration, 'id' | 'title' | 'slug' | 'category'> | Collaboration
 }
 
+export interface CrmLead {
+  id: string
+  full_name: string
+  phone: string
+  email: string
+  source: string
+  created_at: string
+}
+
 export interface Subscriber {
   id: string
   name: string

@@ -108,6 +108,14 @@ export function RadarGalleryPath() {
               >
                 @{gallery.handle}
               </a>
+              <div className="mt-2">
+                <Link
+                  href={`/events/${EVENT.slug}/${gallery.slug}`}
+                  className="inline-flex min-h-9 items-center rounded-md border border-[#fa6628]/40 bg-[#fff7f0]/40 px-3 py-1.5 text-xs font-semibold text-[#fa6628] transition-colors hover:border-[#fa6628] hover:bg-[#fff7f0]/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fa6628]/50"
+                >
+                  More info
+                </Link>
+              </div>
             </div>
           </li>
         )

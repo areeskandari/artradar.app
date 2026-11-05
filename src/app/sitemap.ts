@@ -3,6 +3,7 @@ import { SITE_URL } from '@/lib/seo'
 import { createPublicDataClient } from '@/lib/supabase/server'
 import { isSpecialEventEnabled } from '@/lib/special-events'
 import { KEEP_ON_YOUR_RADAR } from '@/lib/keep-on-your-radar'
+import { KEEP_ON_YOUR_RADAR_STOPS } from '@/lib/keep-on-your-radar-stops'
 
 const baseUrl = SITE_URL
 
@@ -38,7 +39,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/artists`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     ...(await isSpecialEventEnabled(KEEP_ON_YOUR_RADAR.slug)
-      ? [{ url: `${baseUrl}/events/${KEEP_ON_YOUR_RADAR.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 }]
+      ? [
+          { url: `${baseUrl}/events/${KEEP_ON_YOUR_RADAR.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
+          ...KEEP_ON_YOUR_RADAR_STOPS.map((stop) => ({
+            url: `${baseUrl}/events/${KEEP_ON_YOUR_RADAR.slug}/${stop.slug}`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+          })),
+        ]
       : []),
     { url: `${baseUrl}/galleries`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },

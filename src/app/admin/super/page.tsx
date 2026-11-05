@@ -19,7 +19,7 @@ export default async function SuperAdminPage() {
     redirect('/admin')
   }
 
-  const [galleriesRes, artistsRes, eventsRes, newsRes, collaborationsRes, subscribersRes, galleryArtistsRes, eventArtistsRes, galleryAreasRes, specialEventFlags] = await Promise.all([
+  const [galleriesRes, artistsRes, eventsRes, newsRes, collaborationsRes, subscribersRes, galleryArtistsRes, eventArtistsRes, galleryAreasRes, specialEventFlags, crmLeadsRes] = await Promise.all([
     supabase.from('galleries').select('*').order('name'),
     supabase.from('artists').select('*').order('name'),
     supabase.from('events').select('*, gallery:galleries(name)').order('start_date', { ascending: false }),
@@ -30,6 +30,7 @@ export default async function SuperAdminPage() {
     supabase.from('event_artists').select('event_id, artist_id'),
     supabase.from('gallery_areas').select('*').order('sort_order').order('label'),
     getSpecialEventFlags(),
+    supabase.from('crm_leads').select('*').order('created_at', { ascending: false }).limit(200),
   ])
 
   const specialEvents = SPECIAL_EVENT_PAGES.map((event) => ({
@@ -86,6 +87,7 @@ export default async function SuperAdminPage() {
       eventArtists={eventArtists}
       galleryAreas={galleryAreasList}
       specialEvents={specialEvents}
+      crmLeads={(crmLeadsRes.data || []) as import('@/types').CrmLead[]}
     />
   )
 }
