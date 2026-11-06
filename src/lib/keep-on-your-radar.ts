@@ -27,6 +27,18 @@ export const KEEP_ON_YOUR_RADAR = {
   communityBy: 'vin.meet',
   communityHandle: 'vin.meet',
   communityUrl: 'https://vinmeet.io',
+  partner: {
+    name: 'Nightjar Coffee Roasters',
+    handle: 'nightjar.coffee',
+    href: 'https://www.instagram.com/nightjar.coffee/',
+    imageSrc: '/images/banners/keep-on-your-radar-nightjar.jpg',
+    imageAlt: 'Art Radar × Nightjar — coffee roasters at our first event',
+    title: 'Nightjar Coffee Roasters is with Art Radar at our first event.',
+    body: [
+      'Join us this Saturday, 7 November at 5 PM for Art Talk & Walk at Alserkal Avenue.',
+      'Art Radar members enjoy 20% off the hot coffee bar at Nightjar — mention you’re with Art Radar and show your coded label.',
+    ],
+  },
   galleries: [
     { slug: 'leila-heller-gallery', name: 'Leila Heller Gallery', handle: 'leilahellergallery', href: '/galleries/leila-heller-gallery', external: false },
     { slug: 'the-third-line', name: 'The Third Line Gallery', handle: 'thethirdlinedxb', href: '/galleries/the-third-line', external: false },

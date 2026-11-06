@@ -3,10 +3,30 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { KEEP_ON_YOUR_RADAR as EVENT } from '@/lib/keep-on-your-radar'
+import { KEEP_ON_YOUR_RADAR_STOPS } from '@/lib/keep-on-your-radar-stops'
 import { cn } from '@/lib/utils'
 
+function eventGalleryPhotos() {
+  const seen = new Set<string>()
+  const photos: { src: string; alt: string }[] = []
+
+  function add(src: string, alt: string) {
+    if (!src || seen.has(src)) return
+    seen.add(src)
+    photos.push({ src, alt })
+  }
+
+  for (const photo of EVENT.photos) add(photo.src, photo.alt)
+  for (const stop of KEEP_ON_YOUR_RADAR_STOPS) {
+    for (const image of stop.images) add(image.src, image.alt)
+  }
+  add(EVENT.partner.imageSrc, EVENT.partner.imageAlt)
+
+  return photos
+}
+
 export function RadarEventPhotos({ className }: { className?: string }) {
-  const photos = [...EVENT.photos]
+  const photos = eventGalleryPhotos()
   const count = photos.length
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)

@@ -140,6 +140,40 @@ export default async function KeepOnYourRadarPage() {
           </div>
 
         </div>
+
+        <section className="mt-14 sm:mt-16 pt-10 border-t border-[#fa6628]/25">
+          <p className="type-eyebrow !text-[#fa6628] mb-3">In collaboration</p>
+          <h2
+            className={`${radarDisplayClass()} text-balance text-[clamp(1.5rem,4vw,2.25rem)] leading-[1.08] tracking-[-0.03em] font-semibold text-[#fa6628] mb-5`}
+          >
+            {EVENT.partner.title}
+          </h2>
+          <figure className="mb-6 overflow-hidden rounded-lg outline outline-1 outline-black/10 max-w-xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={EVENT.partner.imageSrc}
+              alt={EVENT.partner.imageAlt}
+              className="block h-auto w-full"
+            />
+          </figure>
+          <div className="space-y-4 text-[1.0625rem] leading-relaxed text-[#3a271c] max-w-2xl">
+            {EVENT.partner.body.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+            <p>
+              Follow{' '}
+              <a
+                href={EVENT.partner.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[#fa6628] hover:text-[#e24e14] transition-colors"
+              >
+                @{EVENT.partner.handle}
+              </a>
+              .
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   )
